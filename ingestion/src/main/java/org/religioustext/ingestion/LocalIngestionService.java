@@ -386,16 +386,17 @@ public class LocalIngestionService {
         m.put("1maccabees",      new BookMeta("1 Maccabees",      "DC", "1MA", 69));
         m.put("2maccabees",      new BookMeta("2 Maccabees",      "DC", "2MA", 70));
         m.put("wisdom",          new BookMeta("Wisdom",           "DC", "WIS", 71));
-        m.put("sirach",          new BookMeta("Sirach",           "DC", "SIR", 72));
+        m.put("ecclesiasticus",  new BookMeta("Sirach",            "DC", "SIR", 72));
         m.put("baruch",          new BookMeta("Baruch",           "DC", "BAR", 73));
         m.put("1esdras",         new BookMeta("1 Esdras",         "DC", "1ES", 74));
         m.put("2esdras",         new BookMeta("2 Esdras",         "DC", "2ES", 75));
         m.put("3maccabees",      new BookMeta("3 Maccabees",      "DC", "3MA", 76));
         m.put("4maccabees",      new BookMeta("4 Maccabees",      "DC", "4MA", 77));
-        m.put("manasses",        new BookMeta("Prayer of Manasseh","DC", "MAN", 78));
+        m.put("manasseh",        new BookMeta("Prayer of Manasseh","DC", "MAN", 78));
         m.put("susanna",         new BookMeta("Susanna",          "DC", "SUS", 79));
         m.put("songofthethree",  new BookMeta("Song of the Three","DC", "S3Y", 80));
-        m.put("bel",             new BookMeta("Bel and the Dragon","DC", "BEL", 81));
+        m.put("belandthedragon", new BookMeta("Bel and the Dragon","DC", "BEL", 81));
+        m.put("esther(greek)",   new BookMeta("Esther (Greek)",    "DC", "ESG", 82));
         return m;
     }
 }

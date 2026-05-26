@@ -13,6 +13,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Base64;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Stores and retrieves XML documents in BaseX via its REST API.
@@ -154,7 +155,10 @@ public class BaseXStore {
                 pb.redirectErrorStream(true);
                 final Process proc = pb.start();
                 final String code = new String(proc.getInputStream().readAllBytes()).trim();
-                proc.waitFor();
+                if (!proc.waitFor(30, TimeUnit.SECONDS)) {
+                    proc.destroyForcibly();
+                    throw new RuntimeException("XQuery POST timed out after 30s");
+                }
                 if (!code.startsWith("2")) {
                     throw new RuntimeException("PUT failed with HTTP " + code);
                 }
@@ -191,7 +195,10 @@ public class BaseXStore {
                 pb.redirectErrorStream(true);
                 final Process proc = pb.start();
                 final String code = new String(proc.getInputStream().readAllBytes()).trim();
-                proc.waitFor();
+                if (!proc.waitFor(30, TimeUnit.SECONDS)) {
+                    proc.destroyForcibly();
+                    throw new RuntimeException("XQuery POST timed out after 30s");
+                }
                 if (!code.startsWith("2")) {
                     final String response = Files.readString(Path.of("/tmp/basex-xq-response.txt"));
                     throw new RuntimeException("XQuery POST failed HTTP " + code + ": " + response);
