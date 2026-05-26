@@ -1,0 +1,56 @@
+services:
+
+  # BaseX XML Database (replaces eXist-db - better ARM64 support)
+  basex:
+    image: basex/basexhttp:latest
+    container_name: religioustext-basex
+    restart: unless-stopped
+    ports:
+      - "8080:8080"   # BaseX REST + web interface
+      - "1984:1984"   # BaseX client port
+    environment:
+      - BASEX_JVM=-Xmx2g -Xms512m
+    volumes:
+      - basex-data:/srv/basex/data
+      - ../schema:/srv/basex/schema:ro
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/rest/"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    networks:
+      - religioustext-net
+
+  # MySQL
+  mysql:
+    image: mysql:8.3
+    container_name: religioustext-mysql
+    restart: unless-stopped
+    ports:
+      - "3306:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=rootpassword
+      - MYSQL_DATABASE=religioustext
+      - MYSQL_USER=rtuser
+      - MYSQL_PASSWORD=rtpassword
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./mysql-init:/docker-entrypoint-initdb.d:ro
+      - ./mysql.cnf:/etc/mysql/conf.d/custom.cnf:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "rtuser", "-prtpassword"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    networks:
+      - religioustext-net
+
+networks:
+  religioustext-net:
+    driver: bridge
+
+volumes:
+  basex-data:
+  mysql-data:

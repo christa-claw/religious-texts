@@ -1,0 +1,212 @@
+# Bible translation sources for API.Bible ingestion
+# API base: https://rest.api.bible/v1/bibles/{bibleId}/chapters/{chapterId}
+# Full list: curl --url https://rest.api.bible/v1/bibles --header 'api-key: KEY'
+
+translations:
+
+  # ── English - Public Domain ───────────────────────────────────────
+  - id: bible-kjv
+    translation: King James Version
+    abbreviation: KJV
+    apiBibleId: de4e12af7f28f599-01
+    bcp47Language: en
+    iso639_3: eng
+    direction: ltr
+    year: 1611
+    license: Public Domain
+    region: Protestant
+
+  - id: bible-asv
+    translation: American Standard Version
+    abbreviation: ASV
+    apiBibleId: 06125adad2d5898a-01
+    bcp47Language: en
+    iso639_3: eng
+    direction: ltr
+    year: 1901
+    license: Public Domain
+    region: Protestant
+
+  - id: bible-web
+    translation: World English Bible
+    abbreviation: WEB
+    apiBibleId: 9879dbb7cfe39e4d-01
+    bcp47Language: en
+    iso639_3: eng
+    direction: ltr
+    license: Public Domain
+    region: Protestant
+
+  - id: bible-dra
+    translation: Douay-Rheims 1899
+    abbreviation: DRA
+    apiBibleId: 179568874c45066f-01
+    bcp47Language: en
+    iso639_3: eng
+    direction: ltr
+    year: 1899
+    license: Public Domain
+    region: Catholic
+
+  # ── English - Licensed (your 3 free slots) ───────────────────────
+  - id: bible-niv
+    translation: New International Version
+    abbreviation: NIV
+    apiBibleId: 78a9f6124f344018-01
+    bcp47Language: en
+    iso639_3: eng
+    direction: ltr
+    year: 2011
+    license: Licensed
+    region: Protestant
+
+  - id: bible-nasb20
+    translation: New American Standard Bible 2020
+    abbreviation: NASB
+    apiBibleId: a761ca71e0b3ddcf-01
+    bcp47Language: en
+    iso639_3: eng
+    direction: ltr
+    year: 2020
+    license: Licensed
+    region: Protestant
+
+  # ── Spanish ───────────────────────────────────────────────────────
+  - id: bible-rvr09
+    translation: Reina Valera 1909
+    abbreviation: RVR09
+    apiBibleId: 592420522e16049f-01
+    bcp47Language: es
+    iso639_3: spa
+    direction: ltr
+    year: 1909
+    license: Public Domain
+    region: Protestant
+
+  - id: bible-nbla
+    translation: Nueva Biblia de las Américas
+    abbreviation: NBLA
+    apiBibleId: ce11b813f9a27e20-01
+    bcp47Language: es
+    iso639_3: spa
+    direction: ltr
+    license: Licensed
+    region: Protestant
+
+  # ── German ───────────────────────────────────────────────────────
+  - id: bible-luther1912
+    translation: Luther Bibel 1912
+    abbreviation: LUT1912
+    apiBibleId: 926aa5efbc5e04e2-01
+    bcp47Language: de
+    iso639_3: deu
+    direction: ltr
+    year: 1912
+    license: Public Domain
+    region: Protestant
+
+  # ── Finnish ───────────────────────────────────────────────────────
+  - id: bible-fin-aeuut
+    translation: Finnish Living News New Testament
+    abbreviation: AEUUT
+    apiBibleId: c739534f6a23acb2-01
+    bcp47Language: fi
+    iso639_3: fin
+    direction: ltr
+    license: Licensed
+    region: Protestant
+
+  # ── Arabic ───────────────────────────────────────────────────────
+  - id: bible-arabic
+    translation: New Arabic Version 2012
+    abbreviation: NAV
+    apiBibleId: b17e246951402e50-01
+    bcp47Language: ar
+    iso639_3: arb
+    direction: rtl
+    license: Licensed
+    region: Protestant
+
+  # ── Original Languages ────────────────────────────────────────────
+  - id: bible-wlc
+    translation: Westminster Leningrad Codex
+    abbreviation: WLC
+    apiBibleId: 0b262f1ed7f084a6-01
+    bcp47Language: he
+    iso639_3: hbo
+    direction: rtl
+    license: Public Domain
+    region: Protestant
+
+  - id: bible-grctr
+    translation: Greek Textus Receptus
+    abbreviation: GRCTR
+    apiBibleId: 3aefb10641485092-01
+    bcp47Language: grc
+    iso639_3: grc
+    direction: ltr
+    license: Public Domain
+    region: Protestant
+
+  # ── Local clone translations ──────────────────────────────────────
+  # sourceUrl format: "local:{translationCode}:{apiBibleId}"
+  # apiBibleId used for title lookup only — leave empty if none
+
+  - id: bible-kjv-local
+    translation: King James Version
+    abbreviation: KJV
+    apiBibleId: de4e12af7f28f599-01
+    localCode: en-kjv
+    bcp47Language: en
+    iso639_3: eng
+    direction: ltr
+    year: 1611
+    license: Public Domain
+    region: Protestant
+
+  - id: bible-asv-local
+    translation: American Standard Version
+    abbreviation: ASV
+    apiBibleId: 06125adad2d5898a-01
+    localCode: en-asv
+    bcp47Language: en
+    iso639_3: eng
+    direction: ltr
+    year: 1901
+    license: Public Domain
+    region: Protestant
+
+  - id: bible-web-local
+    translation: World English Bible
+    abbreviation: WEB
+    apiBibleId: 9879dbb7cfe39e4d-01
+    localCode: en-web
+    bcp47Language: en
+    iso639_3: eng
+    direction: ltr
+    license: Public Domain
+    region: Protestant
+
+  - id: bible-dra-local
+    translation: Douay-Rheims 1899
+    abbreviation: DRA
+    apiBibleId: 179568874c45066f-01
+    localCode: en-dra
+    bcp47Language: en
+    iso639_3: eng
+    direction: ltr
+    year: 1899
+    license: Public Domain
+    region: Catholic
+
+  - id: bible-rvr09-local
+    translation: Reina Valera 1909
+    abbreviation: RVR09
+    apiBibleId: 592420522e16049f-01
+    localCode: es-rv09
+    bcp47Language: es
+    iso639_3: spa
+    direction: ltr
+    year: 1909
+    license: Public Domain
+    region: Protestant
