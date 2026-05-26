@@ -6,28 +6,27 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Base64;
 
 /**
- * Stores XML documents in BaseX via its REST API.
+ * Stores and retrieves XML documents in BaseX via its REST API.
  *
- * Strategy: one document per translation, books inserted one at a time.
+ * Uses curl for PUT and XQuery POST to avoid Spring RestTemplate encoding issues.
+ *
+ * Strategy: one document per translation, books inserted incrementally.
  *   1. createRootDocument() — PUT empty root with metadata attributes
- *   2. insertBook()         — POST XQuery update inserting one book at a time
- *
- * This avoids sending one giant XML document and allows resuming
- * if ingestion fails partway through.
+ *   2. insertBook()         — XQuery update inserting one book at a time
  */
 @Component
 public class BaseXStore {
 
     private static final Logger log = LoggerFactory.getLogger(BaseXStore.class);
-
     private static final String NS = "http://religioustext.org/schema/1.0";
 
     @Value("${basex.uri}")
@@ -50,7 +49,6 @@ public class BaseXStore {
 
     /**
      * Creates an empty root document with translation metadata.
-     * Called once per ingestion before any books are inserted.
      */
     public void createRootDocument(
              final String documentId
@@ -77,28 +75,22 @@ public class BaseXStore {
         xml.append(" iso639_3=\"").append(iso639_3).append("\"");
         xml.append(" direction=\"").append(direction).append("\"");
         xml.append(" license=\"").append(escapeXml(license != null ? license : "Public Domain")).append("\"");
-        if (year != null) {
-            xml.append(" year=\"").append(year).append("\"");
-        }
-        if (region != null) {
-            xml.append(" region=\"").append(escapeXml(region)).append("\"");
-        }
+        if (year != null) xml.append(" year=\"").append(year).append("\"");
+        if (region != null) xml.append(" region=\"").append(escapeXml(region)).append("\"");
         xml.append("/>");
 
-        put(documentId + ".xml", xml.toString());
+        put(documentId, xml.toString());
         log.info("Root document created: {}.xml", documentId);
     }
 
     /**
      * Inserts a serialised book XML fragment into the root document.
-     * The bookXml must be a complete <book> element string.
      */
     public void insertBook(final String documentId, final String bookXml) {
         final String xquery =
             "declare namespace rt='" + NS + "'; " +
             "insert node " + bookXml + " " +
-            "into doc('" + database + "/" + documentId + ".xml')/rt:text";
-
+            "into db:open('" + database + "','" + documentId + "')/rt:text";
         postXQuery(xquery);
     }
 
@@ -108,18 +100,10 @@ public class BaseXStore {
     public void setTotalVerses(final String documentId, final int totalVerses) {
         final String xquery =
             "declare namespace rt='" + NS + "'; " +
-            "replace value of node " +
-            "doc('" + database + "/" + documentId + ".xml')/rt:text/@totalVerses " +
-            "with '" + totalVerses + "'";
-
-        // First insert the attribute if it doesn't exist
-        final String xqueryInsert =
-            "declare namespace rt='" + NS + "'; " +
             "insert node attribute totalVerses {'" + totalVerses + "'} " +
-            "into doc('" + database + "/" + documentId + ".xml')/rt:text";
-
+            "into db:open('" + database + "','" + documentId + "')/rt:text";
         try {
-            postXQuery(xqueryInsert);
+            postXQuery(xquery);
         } catch (final Exception e) {
             log.warn("Could not set totalVerses: {}", e.getMessage());
         }
@@ -131,11 +115,8 @@ public class BaseXStore {
     public boolean exists(final String documentId) {
         try {
             final String url = uri + "/" + database + "/" + documentId + ".xml";
-            restTemplate.exchange(
-                 url
-                , HttpMethod.GET
-                , new HttpEntity<>(buildAuthHeaders())
-                , String.class);
+            restTemplate.exchange(url, HttpMethod.GET,
+                new HttpEntity<>(buildAuthHeaders()), String.class);
             return true;
         } catch (final Exception e) {
             return false;
@@ -148,52 +129,95 @@ public class BaseXStore {
     public void delete(final String documentId) {
         log.info("Deleting document: {}", documentId);
         final String url = uri + "/" + database + "/" + documentId + ".xml";
-        restTemplate.exchange(
-             url
-            , HttpMethod.DELETE
-            , new HttpEntity<>(buildAuthHeaders())
-            , String.class);
+        restTemplate.exchange(url, HttpMethod.DELETE,
+            new HttpEntity<>(buildAuthHeaders()), String.class);
     }
 
     // ── Internal helpers ──────────────────────────────────────────────
 
+    /**
+     * PUT via curl — avoids Spring RestTemplate encoding issues with BaseX.
+     */
     private void put(final String path, final String xmlContent) {
-        final String url = uri + "/" + database + "/" + path;
-        final HttpHeaders headers = buildAuthHeaders();
-        headers.setContentType(MediaType.APPLICATION_XML);
-        restTemplate.exchange(
-             url
-            , HttpMethod.PUT
-            , new HttpEntity<>(xmlContent.getBytes(StandardCharsets.UTF_8), headers)
-            , String.class);
+        try {
+            final String urlStr = uri + "/" + database + "/" + path;
+            final java.io.File tmp = java.io.File.createTempFile("basex-put-", ".xml");
+            try {
+                Files.writeString(tmp.toPath(), xmlContent, StandardCharsets.UTF_8);
+                final ProcessBuilder pb = new ProcessBuilder(
+                     "curl", "-s", "-o", "/dev/null", "-w", "%{http_code}"
+                    , "-u", username + ":" + password
+                    , "-X", "PUT"
+                    , "-H", "Content-Type: application/xml; charset=utf-8"
+                    , "--data-binary", "@" + tmp.getAbsolutePath()
+                    , urlStr);
+                pb.redirectErrorStream(true);
+                final Process proc = pb.start();
+                final String code = new String(proc.getInputStream().readAllBytes()).trim();
+                proc.waitFor();
+                if (!code.startsWith("2")) {
+                    throw new RuntimeException("PUT failed with HTTP " + code);
+                }
+                log.info("PUT {} -> HTTP {}", path, code);
+            } finally {
+                tmp.delete();
+            }
+        } catch (final Exception e) {
+            throw new RuntimeException("PUT failed: " + e.getMessage(), e);
+        }
     }
 
+    /**
+     * XQuery POST via curl — avoids 414 URI Too Long from URL params.
+     */
     private void postXQuery(final String xquery) {
-        final String url = uri + "/" + database;
-        final HttpHeaders headers = buildAuthHeaders();
-        headers.setContentType(MediaType.TEXT_PLAIN);
-        headers.set("X-Method", "POST");
-        restTemplate.exchange(
-             url + "?query=" + java.net.URLEncoder.encode(xquery, StandardCharsets.UTF_8)
-            , HttpMethod.GET
-            , new HttpEntity<>(headers)
-            , String.class);
+        try {
+            final String wrapped =
+                "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
+                "<query xmlns=\"http://basex.org/rest\">" +
+                "<text>" + escapeXml(xquery) + "</text>" +
+                "</query>";
+            final java.io.File tmp = java.io.File.createTempFile("basex-xq-", ".xml");
+            try {
+                Files.writeString(tmp.toPath(), wrapped, StandardCharsets.UTF_8);
+                final String url = uri + "/" + database;
+                final ProcessBuilder pb = new ProcessBuilder(
+                     "curl", "-s", "-o", "/tmp/basex-xq-response.txt", "-w", "%{http_code}"
+                    , "-u", username + ":" + password
+                    , "-X", "POST"
+                    , "-H", "Content-Type: application/xml"
+                    , "--data-binary", "@" + tmp.getAbsolutePath()
+                    , url);
+                pb.redirectErrorStream(true);
+                final Process proc = pb.start();
+                final String code = new String(proc.getInputStream().readAllBytes()).trim();
+                proc.waitFor();
+                if (!code.startsWith("2")) {
+                    final String response = Files.readString(Path.of("/tmp/basex-xq-response.txt"));
+                    throw new RuntimeException("XQuery POST failed HTTP " + code + ": " + response);
+                }
+            } finally {
+                tmp.delete();
+            }
+        } catch (final Exception e) {
+            throw new RuntimeException("XQuery failed: " + e.getMessage(), e);
+        }
     }
 
     private HttpHeaders buildAuthHeaders() {
-        final HttpHeaders headers  = new HttpHeaders();
-        final String      creds    = username + ":" + password;
-        final String      encoded  = Base64.getEncoder()
-            .encodeToString(creds.getBytes(StandardCharsets.UTF_8));
+        final HttpHeaders headers = new HttpHeaders();
+        final String encoded = Base64.getEncoder()
+            .encodeToString((username + ":" + password).getBytes(StandardCharsets.UTF_8));
         headers.set("Authorization", "Basic " + encoded);
         return headers;
     }
 
     private String escapeXml(final String value) {
+        if (value == null) return "";
         return value
-            .replace("&", "&amp;")
+            .replace("&",  "&amp;")
             .replace("\"", "&quot;")
-            .replace("<", "&lt;")
-            .replace(">", "&gt;");
+            .replace("<",  "&lt;")
+            .replace(">",  "&gt;");
     }
 }
