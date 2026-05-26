@@ -40,6 +40,8 @@ public class LocalIngestionService {
     // Maps local folder names to canonical book names and metadata
     private static final Map<String, BookMeta> BOOK_META = buildBookMeta();
 
+    private static final CrawledBook POISON_PILL = new CrawledBook(null, 0, null, null);
+
     private final LocalBibleReader localReader;
     private final ApiBibleCrawler  apiBibleCrawler;
     private final BibleApiParser   parser;
@@ -107,10 +109,10 @@ public class LocalIngestionService {
             MDC.put("translation", abbreviation);
             MDC.put("book", "INSERT");
             int inserted = 0;
-            while (!Thread.currentThread().isInterrupted()) {
+            while (true) {
                 try {
-                    final CrawledBook crawled = queue.poll(1, TimeUnit.SECONDS);
-                    if (crawled == null) continue;
+                    final CrawledBook crawled = queue.take();
+                    if (crawled == POISON_PILL) break;
 
                     final String bookXml = parser.serialiseBook(
                          null
@@ -197,8 +199,8 @@ public class LocalIngestionService {
 
         pool.shutdown();
         pool.awaitTermination(2, TimeUnit.HOURS);
-        // Signal insert thread to stop
-        insertThread.interrupt();
+        // Signal insert thread to stop cleanly via poison pill
+        queue.put(POISON_PILL);
         insertThread.join();
 
         store.setTotalVerses(documentId, totalVerses.get());

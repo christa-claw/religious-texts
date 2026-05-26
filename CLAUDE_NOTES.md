@@ -183,7 +183,7 @@ Producer/consumer pattern:
 | Translation | Language | Status |
 |---|---|---|
 | NIV 2011 | English | ✅ Complete — 30,752 verses, chapter titles working |
-| KJV 1611 | English | ⚠️ Re-ingest needed — canonicalOrder bug fixed, drop and re-ingest |
+| KJV 1611 | English | ✅ Complete — 36,820 verses (inc. Apocrypha), canonical order fixed |
 | ASV 1901 | English | ⏳ Ready |
 | WEB | English | ⏳ Ready |
 | DRA 1899 | English Catholic | ⏳ Ready |
@@ -196,9 +196,7 @@ Producer/consumer pattern:
 
 BaseX currently contains:
 - `bible-niv-2011.xml` (183KB, 30,752 verses) ✅
-- `bible-kjv-1611` (187KB, 36,820 verses) ⚠️ needs re-ingest — canonicalOrder was alphabetical, now fixed
-
-Note: KJV stored without `.xml` suffix — inconsistent with NIV. Worth standardising.
+- `bible-kjv-1611` (187KB, 36,820 verses) ✅ canonical order correct, all 80 books
 
 ---
 
@@ -210,8 +208,11 @@ Note: KJV stored without `.xml` suffix — inconsistent with NIV. Worth standard
 - KJV has no `totalVerses` attribute on root — set via `store.setTotalVerses()` post-ingestion; NIV path may differ — worth checking consistency
 - KJV document name has no `.xml` suffix (`bible-kjv-1611` vs `bible-niv-2011.xml`) — worth standardising
 - NIV abbreviated book names (e.g. `Lev.`) still an open TODO
-- Decision: update CLAUDE_NOTES.md continuously during sessions
-- Next: drop KJV from BaseX, restart ingestion app, re-ingest KJV, then remaining translations
+- **Fixed** `BaseXStore.java`: `proc.waitFor()` replaced with `proc.waitFor(30, TimeUnit.SECONDS)` + `destroyForcibly()` on timeout in both `put()` and `postXQuery()` — eliminates spurious InterruptedException noise
+- **Fixed** `LocalIngestionService.java` `BOOK_META` folder name mismatches: `sirach`→`ecclesiasticus`, `manasses`→`manasseh`, `bel`→`belandthedragon`, added `esther(greek)`
+- KJV re-ingested cleanly — 80 books, correct canonical order, 36,820 verses
+- Committed and pushed all changes
+- Next: trigger remaining translations (ASV, WEB, DRA, RVR09, NASB20, NBLA), then fix NIV book names
 
 ---
 
@@ -248,11 +249,11 @@ Note: KJV stored without `.xml` suffix — inconsistent with NIV. Worth standard
 
 ## Next Session Priorities
 
-1. Drop `bible-kjv-1611` from BaseX and re-ingest KJV with canonicalOrder fix
-2. Fix NIV abbreviated book names in BibleApiParser
-3. Trigger NASB20 and NBLA from API.Bible
-4. Trigger remaining local clone translations (ASV, WEB, DRA, RVR09)
-5. Standardise document naming (with vs without `.xml` suffix)
+1. Fix NIV abbreviated book names in BibleApiParser
+2. Trigger NASB20 and NBLA from API.Bible
+3. Trigger remaining local clone translations (ASV, WEB, DRA, RVR09)
+4. Standardise document naming (with vs without `.xml` suffix)
+5. Fix insert thread drain — use poison pill instead of interrupt to eliminate spurious InterruptedException
 6. Start Quran ingestion
 7. Fix schema validation namespace issue
 8. Add Spring Security + login + user comments UI
