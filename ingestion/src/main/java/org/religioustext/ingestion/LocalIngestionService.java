@@ -141,14 +141,10 @@ public class LocalIngestionService {
 
         // Crawler pool
         final ExecutorService pool = Executors.newFixedThreadPool(MAX_THREADS);
-        final int[] orderCounter   = {0};
 
         bookFolders.forEach(bookFolder -> pool.submit(() -> {
-            final int order;
-            synchronized (orderCounter) { order = ++orderCounter[0]; }
-
             final BookMeta meta     = BOOK_META.getOrDefault(bookFolder
-                , new BookMeta(toDisplayName(bookFolder), order <= 39 ? "OT" : "NT"));
+                , new BookMeta(toDisplayName(bookFolder), "DC"));
             final String bookName   = meta.name();
             final String testament  = meta.testament();
 
@@ -187,7 +183,7 @@ public class LocalIngestionService {
                     })
                     .toList();
 
-                queue.put(new CrawledBook(bookName, order, testament, chapters));
+                queue.put(new CrawledBook(bookName, meta.canonicalOrder(), testament, chapters));
 
             } catch (final InterruptedException e) {
                 Thread.currentThread().interrupt();
