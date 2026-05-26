@@ -184,19 +184,26 @@ Producer/consumer pattern:
 |---|---|---|
 | NIV 2011 | English | ✅ Complete — 30,752 verses, chapter titles working |
 | KJV 1611 | English | ✅ Complete — 36,820 verses (inc. Apocrypha), canonical order fixed |
-| ASV 1901 | English | ⏳ Ready |
-| WEB | English | ⏳ Ready |
-| DRA 1899 | English Catholic | ⏳ Ready |
-| RVR09 1909 | Spanish | ⏳ Ready |
+| ASV 1901 | English | ✅ Complete — local clone |
+| WEB | English | ✅ Complete — local clone |
+| DRA 1899 | English Catholic | ✅ Complete — local clone |
+| RVR09 1909 | Spanish | ✅ Complete — 31,102 verses, local clone |
 | NASB20 | English | ⏳ Ready — API.Bible licensed slot 2 |
 | NBLA | Spanish | ⏳ Ready — API.Bible licensed slot 3 |
 | LUT1912 | German | ⏳ Ready |
 | AEUUT | Finnish | ⏳ Ready |
+| NAV | Arabic | ⏳ Ready |
+| WLC | Biblical Hebrew | ⏳ Ready |
+| GRCTR | Ancient Greek | ⏳ Ready |
 | Quran | Multiple | ❌ Not started |
 
 BaseX currently contains:
 - `bible-niv-2011.xml` (183KB, 30,752 verses) ✅
-- `bible-kjv-1611` (187KB, 36,820 verses) ✅ canonical order correct, all 80 books
+- `bible-kjv-1611` (187KB, 36,820 verses inc. Apocrypha) ✅
+- `bible-asv-1901` (158KB) ✅
+- `bible-dra-1899` (181KB) ✅
+- `bible-web` (192KB) ✅
+- `bible-rvr09-1909` (158KB, 31,102 verses) ✅
 
 ---
 
@@ -212,7 +219,9 @@ BaseX currently contains:
 - **Fixed** `LocalIngestionService.java` `BOOK_META` folder name mismatches: `sirach`→`ecclesiasticus`, `manasses`→`manasseh`, `bel`→`belandthedragon`, added `esther(greek)`
 - KJV re-ingested cleanly — 80 books, correct canonical order, 36,820 verses
 - Committed and pushed all changes
-- Next: trigger remaining translations (ASV, WEB, DRA, RVR09, NASB20, NBLA), then fix NIV book names
+- Poison pill fix confirmed working — ASV, WEB, DRA, RVR09 all ingested with 0 errors
+- All local clone translations now complete
+- Next: API.Bible translations (NASB20, NBLA, LUT1912, AEUUT, NAV, WLC, GRCTR)
 
 ---
 
@@ -250,13 +259,11 @@ BaseX currently contains:
 ## Next Session Priorities
 
 1. Fix NIV abbreviated book names in BibleApiParser
-2. Trigger NASB20 and NBLA from API.Bible
-3. Trigger remaining local clone translations (ASV, WEB, DRA, RVR09)
-4. Standardise document naming (with vs without `.xml` suffix)
-5. Fix insert thread drain — use poison pill instead of interrupt to eliminate spurious InterruptedException
-6. Start Quran ingestion
-7. Fix schema validation namespace issue
-8. Add Spring Security + login + user comments UI
+2. Trigger API.Bible translations (NASB20, NBLA, LUT1912, AEUUT, NAV, WLC, GRCTR)
+3. Standardise document naming (with vs without `.xml` suffix)
+4. Start Quran ingestion
+5. Fix schema validation namespace issue
+6. Add Spring Security + login + user comments UI
 
 ---
 
