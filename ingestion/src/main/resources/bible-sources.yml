@@ -1,14 +1,15 @@
-# Bible translation sources for API.Bible ingestion
-# API base: https://rest.api.bible/v1/bibles/{bibleId}/chapters/{chapterId}
-# Full list: curl --url https://rest.api.bible/v1/bibles --header 'api-key: KEY'
+# Bible translation sources
+# apiBibleId: used for full API.Bible ingestion OR title-only lookup
+# localCode:  if set, text comes from local clone; apiBibleId used for titles only
 
 translations:
 
-  # ── English - Public Domain ───────────────────────────────────────
-  - id: bible-kjv
+  # ── Local clone translations (text from local, titles from API.Bible) ──
+  - id: bible-kjv-1611
     translation: King James Version
     abbreviation: KJV
     apiBibleId: de4e12af7f28f599-01
+    localCode: en-kjv
     bcp47Language: en
     iso639_3: eng
     direction: ltr
@@ -16,10 +17,11 @@ translations:
     license: Public Domain
     region: Protestant
 
-  - id: bible-asv
+  - id: bible-asv-1901
     translation: American Standard Version
     abbreviation: ASV
     apiBibleId: 06125adad2d5898a-01
+    localCode: en-asv
     bcp47Language: en
     iso639_3: eng
     direction: ltr
@@ -31,16 +33,18 @@ translations:
     translation: World English Bible
     abbreviation: WEB
     apiBibleId: 9879dbb7cfe39e4d-01
+    localCode: en-web
     bcp47Language: en
     iso639_3: eng
     direction: ltr
     license: Public Domain
     region: Protestant
 
-  - id: bible-dra
+  - id: bible-dra-1899
     translation: Douay-Rheims 1899
     abbreviation: DRA
     apiBibleId: 179568874c45066f-01
+    localCode: en-dra
     bcp47Language: en
     iso639_3: eng
     direction: ltr
@@ -48,8 +52,20 @@ translations:
     license: Public Domain
     region: Catholic
 
-  # ── English - Licensed (your 3 free slots) ───────────────────────
-  - id: bible-niv
+  - id: bible-rvr09-1909
+    translation: Reina Valera 1909
+    abbreviation: RVR09
+    apiBibleId: 592420522e16049f-01
+    localCode: es-rv09
+    bcp47Language: es
+    iso639_3: spa
+    direction: ltr
+    year: 1909
+    license: Public Domain
+    region: Protestant
+
+  # ── Full API.Bible translations (text + titles from API.Bible) ────────
+  - id: bible-niv-2011
     translation: New International Version
     abbreviation: NIV
     apiBibleId: 78a9f6124f344018-01
@@ -60,7 +76,7 @@ translations:
     license: Licensed
     region: Protestant
 
-  - id: bible-nasb20
+  - id: bible-nasb-2020
     translation: New American Standard Bible 2020
     abbreviation: NASB
     apiBibleId: a761ca71e0b3ddcf-01
@@ -69,18 +85,6 @@ translations:
     direction: ltr
     year: 2020
     license: Licensed
-    region: Protestant
-
-  # ── Spanish ───────────────────────────────────────────────────────
-  - id: bible-rvr09
-    translation: Reina Valera 1909
-    abbreviation: RVR09
-    apiBibleId: 592420522e16049f-01
-    bcp47Language: es
-    iso639_3: spa
-    direction: ltr
-    year: 1909
-    license: Public Domain
     region: Protestant
 
   - id: bible-nbla
@@ -93,8 +97,7 @@ translations:
     license: Licensed
     region: Protestant
 
-  # ── German ───────────────────────────────────────────────────────
-  - id: bible-luther1912
+  - id: bible-lut1912
     translation: Luther Bibel 1912
     abbreviation: LUT1912
     apiBibleId: 926aa5efbc5e04e2-01
@@ -105,8 +108,7 @@ translations:
     license: Public Domain
     region: Protestant
 
-  # ── Finnish ───────────────────────────────────────────────────────
-  - id: bible-fin-aeuut
+  - id: bible-aeuut
     translation: Finnish Living News New Testament
     abbreviation: AEUUT
     apiBibleId: c739534f6a23acb2-01
@@ -116,8 +118,7 @@ translations:
     license: Licensed
     region: Protestant
 
-  # ── Arabic ───────────────────────────────────────────────────────
-  - id: bible-arabic
+  - id: bible-nav
     translation: New Arabic Version 2012
     abbreviation: NAV
     apiBibleId: b17e246951402e50-01
@@ -127,7 +128,6 @@ translations:
     license: Licensed
     region: Protestant
 
-  # ── Original Languages ────────────────────────────────────────────
   - id: bible-wlc
     translation: Westminster Leningrad Codex
     abbreviation: WLC
@@ -145,68 +145,5 @@ translations:
     bcp47Language: grc
     iso639_3: grc
     direction: ltr
-    license: Public Domain
-    region: Protestant
-
-  # ── Local clone translations ──────────────────────────────────────
-  # sourceUrl format: "local:{translationCode}:{apiBibleId}"
-  # apiBibleId used for title lookup only — leave empty if none
-
-  - id: bible-kjv-local
-    translation: King James Version
-    abbreviation: KJV
-    apiBibleId: de4e12af7f28f599-01
-    localCode: en-kjv
-    bcp47Language: en
-    iso639_3: eng
-    direction: ltr
-    year: 1611
-    license: Public Domain
-    region: Protestant
-
-  - id: bible-asv-local
-    translation: American Standard Version
-    abbreviation: ASV
-    apiBibleId: 06125adad2d5898a-01
-    localCode: en-asv
-    bcp47Language: en
-    iso639_3: eng
-    direction: ltr
-    year: 1901
-    license: Public Domain
-    region: Protestant
-
-  - id: bible-web-local
-    translation: World English Bible
-    abbreviation: WEB
-    apiBibleId: 9879dbb7cfe39e4d-01
-    localCode: en-web
-    bcp47Language: en
-    iso639_3: eng
-    direction: ltr
-    license: Public Domain
-    region: Protestant
-
-  - id: bible-dra-local
-    translation: Douay-Rheims 1899
-    abbreviation: DRA
-    apiBibleId: 179568874c45066f-01
-    localCode: en-dra
-    bcp47Language: en
-    iso639_3: eng
-    direction: ltr
-    year: 1899
-    license: Public Domain
-    region: Catholic
-
-  - id: bible-rvr09-local
-    translation: Reina Valera 1909
-    abbreviation: RVR09
-    apiBibleId: 592420522e16049f-01
-    localCode: es-rv09
-    bcp47Language: es
-    iso639_3: spa
-    direction: ltr
-    year: 1909
     license: Public Domain
     region: Protestant

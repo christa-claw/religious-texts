@@ -57,7 +57,9 @@ public class LocalIngestionService {
     }
 
     public String ingest(final IngestionRequest request) throws Exception {
-        final String translationCode = request.getSourceUrl(); // local folder name e.g. "en-kjv"
+        // sourceUrl format: "local:{localCode}:{apiBibleId}"
+        final String[] urlParts      = request.getSourceUrl().split(":");
+        final String translationCode = urlParts.length > 1 ? urlParts[1] : request.getSourceUrl();
         final String abbreviation    = request.getAbbreviation();
         final String documentId      = "bible-" + abbreviation.toLowerCase()
             + (request.getYear() != null ? "-" + request.getYear() : "");
