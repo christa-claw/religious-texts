@@ -1,7 +1,7 @@
 # Religious Texts Platform — Claude Notes
 
 Running notes updated by Claude on request.
-Last updated: 2026-05-26
+Last updated: 2026-05-26 (session 2)
 
 ---
 
@@ -183,7 +183,7 @@ Producer/consumer pattern:
 | Translation | Language | Status |
 |---|---|---|
 | NIV 2011 | English | ✅ Complete — 30,752 verses, chapter titles working |
-| KJV 1611 | English | ⏳ Ready — local clone ingestion pending |
+| KJV 1611 | English | ⚠️ Re-ingest needed — canonicalOrder bug fixed, drop and re-ingest |
 | ASV 1901 | English | ⏳ Ready |
 | WEB | English | ⏳ Ready |
 | DRA 1899 | English Catholic | ⏳ Ready |
@@ -194,7 +194,24 @@ Producer/consumer pattern:
 | AEUUT | Finnish | ⏳ Ready |
 | Quran | Multiple | ❌ Not started |
 
-BaseX currently contains: `bible-niv-2011.xml` (183KB, 30,752 verses)
+BaseX currently contains:
+- `bible-niv-2011.xml` (183KB, 30,752 verses) ✅
+- `bible-kjv-1611` (187KB, 36,820 verses) ⚠️ needs re-ingest — canonicalOrder was alphabetical, now fixed
+
+Note: KJV stored without `.xml` suffix — inconsistent with NIV. Worth standardising.
+
+---
+
+## Session 2 Notes (2026-05-26)
+
+- Checked BaseX: NIV and KJV both present
+- KJV `canonicalOrder` was wrong — `LocalIngestionService` used thread submission counter (alphabetical) instead of `BOOK_META.canonicalOrder()`
+- **Fixed** `LocalIngestionService.java`: now uses `meta.canonicalOrder()`; removed `orderCounter` and broken `order <= 39` testament fallback; unknown books default to `"DC"`
+- KJV has no `totalVerses` attribute on root — set via `store.setTotalVerses()` post-ingestion; NIV path may differ — worth checking consistency
+- KJV document name has no `.xml` suffix (`bible-kjv-1611` vs `bible-niv-2011.xml`) — worth standardising
+- NIV abbreviated book names (e.g. `Lev.`) still an open TODO
+- Decision: update CLAUDE_NOTES.md continuously during sessions
+- Next: drop KJV from BaseX, restart ingestion app, re-ingest KJV, then remaining translations
 
 ---
 
@@ -231,11 +248,11 @@ BaseX currently contains: `bible-niv-2011.xml` (183KB, 30,752 verses)
 
 ## Next Session Priorities
 
-1. Fix `spring.config.import` in application.properties (one line fix)
-2. Restart ingestion and trigger KJV local clone ingestion
-3. Fix NIV abbreviated book names in BibleApiParser
-4. Trigger NASB20 and NBLA from API.Bible
-5. Trigger remaining local clone translations
+1. Drop `bible-kjv-1611` from BaseX and re-ingest KJV with canonicalOrder fix
+2. Fix NIV abbreviated book names in BibleApiParser
+3. Trigger NASB20 and NBLA from API.Bible
+4. Trigger remaining local clone translations (ASV, WEB, DRA, RVR09)
+5. Standardise document naming (with vs without `.xml` suffix)
 6. Start Quran ingestion
 7. Fix schema validation namespace issue
 8. Add Spring Security + login + user comments UI
