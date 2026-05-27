@@ -73,6 +73,19 @@ religious-texts/
 
 ## Key Design Decisions
 
+### Column Layout (ReaderView)
+- Horizontal list of columns, each fixed at 33% viewport width
+- Adding columns doesn't resize existing ones — they scroll off-screen to the right
+- No hard column limit; 3–5 is typical use
+- Column types: Bible translation, Quran translation, Bible commentary, Quran commentary, personal notes
+- **Vertical sync**: all columns scroll together by default to the same passage
+- **Break sync**: per-column toggle to allow independent scrolling (e.g. comparing non-parallel passages)
+- **Column header**: book / chapter / verse navigation selectors
+- **Source selection**: separate per-column settings panel (translation, commentary version etc.)
+- **Drag to reorder** columns
+- **Add column** button — opens picker for column type and source
+- **Remove column** button per column
+
 ### XML Schema (schema/religious-text.xsd) v1.3
 - One XML document per translation stored in BaseX
 - Translation identity in root `<text>` attributes
@@ -95,7 +108,36 @@ Replaces old checkboxes — single dropdown with historical context as tooltip:
 | Chapters + Verses | ✅ | ✅ | ❌ | Verses added by Robert Estienne 1551 AD ← default |
 | Titles | ✅ | ✅ | ❌ | Disabled — no title data in wldeh source |
 
-### Data Sources
+### UI Layout & Column Model
+
+- Horizontal list of equal-width columns, each fixed at 33% viewport width
+- Adding columns doesn't resize existing ones — they scroll off-screen to the right
+- No hard limit on columns — 5 is the practical sweet spot but unlimited
+- Each column is independently configurable — any column can be:
+  - A Bible translation
+  - A Quran translation
+  - A Bible commentary
+  - A Quran commentary
+  - A Hadith collection
+  - Personal notes/comments
+
+**Vertical sync:**
+- Columns scroll together by default (same passage)
+- Sync is breakable per column — user can unlink a column to browse independently
+- Unlinked columns show a visual indicator (e.g. broken chain icon)
+
+**Column header:**
+- Dropdown to select what's in the column (translation, commentary, hadith collection etc.)
+- Reordering: TBD (drag to reorder or just add/remove)
+
+**Cross-references:**
+- Commentary columns show verse references as clickable links
+- Clicking a reference navigates the synced Bible/Quran column to that passage
+- If the referenced text is not open in any column, offer to open it in a new column
+
+---
+
+### Data Sources — Planned
 
 **Bible — two source types:**
 
@@ -219,9 +261,12 @@ BaseX currently contains:
 - **Fixed** `LocalIngestionService.java` `BOOK_META` folder name mismatches: `sirach`→`ecclesiasticus`, `manasses`→`manasseh`, `bel`→`belandthedragon`, added `esther(greek)`
 - KJV re-ingested cleanly — 80 books, correct canonical order, 36,820 verses
 - Committed and pushed all changes
-- Poison pill fix confirmed working — ASV, WEB, DRA, RVR09 all ingested with 0 errors
-- All local clone translations now complete
-- Next: API.Bible translations (NASB20, NBLA, LUT1912, AEUUT, NAV, WLC, GRCTR)
+- Added `code` attribute to `<book>` elements in BaseX via XQuery update (no re-ingest needed)
+- All books across KJV, ASV, WEB, DRA, RVR09 now have canonical book codes (GEN, EXO... REV)
+- NIV still has abbreviated book names and no codes — needs re-ingestion via API.Bible path
+- Fixed WEB/DRA alternate folder names in BOOK_META (wisdomofsolomon, prayerofmanasses, daniel(greek), psalm151)
+- Added full RVR09 Spanish folder name mappings to BOOK_META
+- Fixed capitalisation: Sanjuan/Sanmarcos/Sanlucas/Sanmateo
 
 ---
 
@@ -234,6 +279,8 @@ BaseX currently contains:
       spring.config.import=optional:classpath:bible-sources.yml,optional:classpath:application-local.properties
       ```
       This causes 401 Unauthorized when triggering ingestion.
+
+- [ ] **Bulk import all local clone translations** — the local clone has 200+ translations across dozens of languages. Future task: iterate all folders in `/Volumes/VMs/data/bible-api-source/bibles/`, auto-generate `bible-sources.yml` entries, and ingest everything. Will need language detection from folder name prefix and a smarter `BOOK_META` fallback for non-Latin scripts.
 
 - [ ] **NIV book names abbreviated** — API.Bible returns short names (e.g. `Lev.` instead
       of `Leviticus`). Need to map API.Bible book IDs to full display names in parser.

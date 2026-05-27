@@ -120,7 +120,8 @@ public class LocalIngestionService {
                         , null
                         , crawled.canonicalOrder()
                         , crawled.testament()
-                        , crawled.chapters());
+                        , crawled.chapters()
+                        , crawled.bookCode());
 
                     store.insertBook(documentId, bookXml);
                     final int verses = crawled.chapters().stream()
@@ -185,7 +186,7 @@ public class LocalIngestionService {
                     })
                     .toList();
 
-                queue.put(new CrawledBook(bookName, meta.canonicalOrder(), testament, chapters));
+                queue.put(new CrawledBook(bookName, meta.canonicalOrder(), testament, toApiCode(bookFolder), chapters));
 
             } catch (final InterruptedException e) {
                 Thread.currentThread().interrupt();
@@ -304,6 +305,7 @@ public class LocalIngestionService {
          String            bookName
         , int               canonicalOrder
         , String            testament
+        , String            bookCode
         , List<ParsedChapter> chapters) {}
 
     private record BookMeta(String name, String testament, String apiCode, int canonicalOrder) {
@@ -399,6 +401,75 @@ public class LocalIngestionService {
         m.put("songofthethree",  new BookMeta("Song of the Three","DC", "S3Y", 80));
         m.put("belandthedragon", new BookMeta("Bel and the Dragon","DC", "BEL", 81));
         m.put("esther(greek)",   new BookMeta("Esther (Greek)",    "DC", "ESG", 82));
+        // WEB/DRA alternate folder names
+        m.put("wisdomofsolomon", new BookMeta("Wisdom",            "DC", "WIS", 71));
+        m.put("prayerofmanasses",new BookMeta("Prayer of Manasseh","DC", "MAN", 78));
+        m.put("daniel(greek)",   new BookMeta("Daniel (Greek)",    "DC", "DAG", 83));
+        m.put("psalm151",        new BookMeta("Psalm 151",         "DC", "PS2", 84));
+        // RVR09 Spanish folder names
+        m.put("génesis",         new BookMeta("Génesis",           "OT", "GEN",  1));
+        m.put("éxodo",           new BookMeta("Éxodo",             "OT", "EXO",  2));
+        m.put("levítico",        new BookMeta("Levítico",          "OT", "LEV",  3));
+        m.put("números",         new BookMeta("Números",           "OT", "NUM",  4));
+        m.put("deuteronomio",    new BookMeta("Deuteronomio",      "OT", "DEU",  5));
+        m.put("josué",           new BookMeta("Josué",             "OT", "JOS",  6));
+        m.put("jueces",          new BookMeta("Jueces",            "OT", "JDG",  7));
+        m.put("rut",             new BookMeta("Rut",               "OT", "RUT",  8));
+        m.put("1samuel",         new BookMeta("1 Samuel",          "OT", "1SA",  9));
+        m.put("2samuel",         new BookMeta("2 Samuel",          "OT", "2SA", 10));
+        m.put("1reyes",          new BookMeta("1 Reyes",           "OT", "1KI", 11));
+        m.put("2reyes",          new BookMeta("2 Reyes",           "OT", "2KI", 12));
+        m.put("1crónicas",       new BookMeta("1 Crónicas",        "OT", "1CH", 13));
+        m.put("2crónicas",       new BookMeta("2 Crónicas",        "OT", "2CH", 14));
+        m.put("esdras",          new BookMeta("Esdras",            "OT", "EZR", 15));
+        m.put("nehemías",        new BookMeta("Nehemías",          "OT", "NEH", 16));
+        m.put("ester",           new BookMeta("Ester",             "OT", "EST", 17));
+        m.put("salmos",          new BookMeta("Salmos",            "OT", "PSA", 19));
+        m.put("proverbios",      new BookMeta("Proverbios",        "OT", "PRO", 20));
+        m.put("eclesiastés",     new BookMeta("Eclesiastés",       "OT", "ECC", 21));
+        m.put("cantares",        new BookMeta("Cantares",          "OT", "SNG", 22));
+        m.put("isaías",          new BookMeta("Isaías",            "OT", "ISA", 23));
+        m.put("jeremías",        new BookMeta("Jeremías",          "OT", "JER", 24));
+        m.put("lamentaciones",   new BookMeta("Lamentaciones",     "OT", "LAM", 25));
+        m.put("ezequiel",        new BookMeta("Ezequiel",          "OT", "EZK", 26));
+        m.put("oseas",           new BookMeta("Oseas",             "OT", "HOS", 28));
+        m.put("amós",            new BookMeta("Amós",              "OT", "AMO", 30));
+        m.put("abdías",          new BookMeta("Abdías",            "OT", "OBA", 31));
+        m.put("jonás",           new BookMeta("Jonás",             "OT", "JON", 32));
+        m.put("miqueas",         new BookMeta("Miqueas",           "OT", "MIC", 33));
+        m.put("nahúm",           new BookMeta("Nahúm",             "OT", "NAM", 34));
+        m.put("habacuc",         new BookMeta("Habacuc",           "OT", "HAB", 35));
+        m.put("sofonías",        new BookMeta("Sofonías",          "OT", "ZEP", 36));
+        m.put("hageo",           new BookMeta("Hageo",             "OT", "HAG", 37));
+        m.put("zacarías",        new BookMeta("Zacarías",          "OT", "ZEC", 38));
+        m.put("malaquías",       new BookMeta("Malaquías",         "OT", "MAL", 39));
+        m.put("Sanmateo",        new BookMeta("San Mateo",         "NT", "MAT", 40));
+        m.put("Sanmarcos",       new BookMeta("San Marcos",        "NT", "MRK", 41));
+        m.put("Sanlucas",        new BookMeta("San Lucas",         "NT", "LUK", 42));
+        m.put("Sanjuan",         new BookMeta("San Juan",          "NT", "JHN", 43));
+        m.put("hechos",          new BookMeta("Hechos",            "NT", "ACT", 44));
+        m.put("romanos",         new BookMeta("Romanos",           "NT", "ROM", 45));
+        m.put("1corintios",      new BookMeta("1 Corintios",       "NT", "1CO", 46));
+        m.put("2corintios",      new BookMeta("2 Corintios",       "NT", "2CO", 47));
+        m.put("gálatas",         new BookMeta("Gálatas",           "NT", "GAL", 48));
+        m.put("efesios",         new BookMeta("Efesios",           "NT", "EPH", 49));
+        m.put("filipenses",      new BookMeta("Filipenses",        "NT", "PHP", 50));
+        m.put("colosenses",      new BookMeta("Colosenses",        "NT", "COL", 51));
+        m.put("1tesalonicenses", new BookMeta("1 Tesalonicenses",  "NT", "1TH", 52));
+        m.put("2tesalonicenses", new BookMeta("2 Tesalonicenses",  "NT", "2TH", 53));
+        m.put("1timoteo",        new BookMeta("1 Timoteo",         "NT", "1TI", 54));
+        m.put("2timoteo",        new BookMeta("2 Timoteo",         "NT", "2TI", 55));
+        m.put("tito",            new BookMeta("Tito",              "NT", "TIT", 56));
+        m.put("filemón",         new BookMeta("Filemón",           "NT", "PHM", 57));
+        m.put("hebreos",         new BookMeta("Hebreos",           "NT", "HEB", 58));
+        m.put("santiago",        new BookMeta("Santiago",          "NT", "JAS", 59));
+        m.put("1pedro",          new BookMeta("1 Pedro",           "NT", "1PE", 60));
+        m.put("2pedro",          new BookMeta("2 Pedro",           "NT", "2PE", 61));
+        m.put("1juan",           new BookMeta("1 Juan",            "NT", "1JN", 62));
+        m.put("2juan",           new BookMeta("2 Juan",            "NT", "2JN", 63));
+        m.put("3juan",           new BookMeta("3 Juan",            "NT", "3JN", 64));
+        m.put("judas",           new BookMeta("Judas",             "NT", "JUD", 65));
+        m.put("apocalipsis",     new BookMeta("Apocalipsis",       "NT", "REV", 66));
         return m;
     }
 }

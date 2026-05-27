@@ -1,15 +1,13 @@
 package org.religioustext.app.ui.views;
 
-import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H2;
-import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.VaadinIcon;
-import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.select.Select;
@@ -28,37 +26,46 @@ import java.util.List;
  * Main reader view — multi-column religious text display.
  *
  * Layout:
- *   [Toolbar: source selector, display toggles, order mode]
- *   [Column 1 | Column 2 | Column 3 ... | Commentary]
+ *   [Toolbar: title | Order Mode | Add Column]
+ *   [Column 1 | Column 2 | Column 3 ... → horizontal scroll]
  *
- * Each column is independent but all sync to the same
- * current book/chapter reference.
+ * Each column is 33vw wide and has its own source selector in the header.
+ * All synced columns share the same book/chapter reference.
+ * Individual columns can break sync to browse independently.
  */
 @Route("")
 @PageTitle("Religious Texts Reader")
 public class ReaderView extends VerticalLayout {
 
-    private final TextQueryService       queryService;
-    private final List<SourceColumn>     columns      = new ArrayList<>();
-    private final HorizontalLayout       columnsLayout;
-    private final ComboBox<String[]>     sourceSelector;
-    private       String                 currentBook;
-    private       int                    currentChapter = 1;
+    private final TextQueryService   queryService;
+    private final List<SourceColumn> columns = new ArrayList<>();
+    private final List<String[]>     sources;
+    private final HorizontalLayout   columnsLayout;
+
+    // Shared navigation state (for synced columns)
+    private String currentBook    = null;
+    private int    currentChapter = 1;
 
     public ReaderView(final TextQueryService queryService) {
         this.queryService  = queryService;
+        this.sources       = queryService.listSources();
         this.columnsLayout = new HorizontalLayout();
-        this.sourceSelector = buildSourceSelector();
 
         setSizeFull();
         setPadding(false);
         setSpacing(false);
 
-        add(buildToolbar(), columnsLayout);
-
         columnsLayout.setSizeFull();
-        columnsLayout.setSpacing(true);
-        columnsLayout.getStyle().set("overflow-x", "auto");
+        columnsLayout.setSpacing(false);
+        columnsLayout.getStyle()
+            .set("overflow-x", "auto")
+            .set("align-items", "stretch");
+
+        add(buildToolbar(), columnsLayout);
+        setFlexGrow(1, columnsLayout);
+
+        // Start with one empty column
+        addColumn();
     }
 
     // ── Toolbar ───────────────────────────────────────────────────────
@@ -70,30 +77,25 @@ public class ReaderView extends VerticalLayout {
         toolbar.getStyle()
             .set("padding", "8px 16px")
             .set("background", "var(--lumo-contrast-5pct)")
-            .set("border-bottom", "1px solid var(--lumo-contrast-10pct)");
+            .set("border-bottom", "1px solid var(--lumo-contrast-10pct)")
+            .set("flex-shrink", "0");
+
+        final Span title = new Span("Religious Texts Reader");
+        title.getStyle()
+            .set("font-weight", "bold")
+            .set("font-size", "18px")
+            .set("flex-grow", "1");
+
+        final Select<OrderMode> orderSelect = buildOrderModeSelector();
 
         final Button addColumnBtn = new Button(
              "Add Column"
             , VaadinIcon.PLUS.create()
             , e -> addColumn());
+        addColumnBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
 
-        toolbar.add(
-             sourceSelector
-            , addColumnBtn
-            , buildOrderModeSelector());
-
+        toolbar.add(title, orderSelect, addColumnBtn);
         return toolbar;
-    }
-
-    private ComboBox<String[]> buildSourceSelector() {
-        final ComboBox<String[]> combo = new ComboBox<>("Source");
-        combo.setItemLabelGenerator(arr -> arr[2] + " — " + arr[1]);
-        combo.setPlaceholder("Select a translation...");
-
-        final List<String[]> sources = queryService.listSources();
-        combo.setItems(sources);
-
-        return combo;
     }
 
     private Select<OrderMode> buildOrderModeSelector() {
@@ -106,180 +108,226 @@ public class ReaderView extends VerticalLayout {
             case CHRONOLOGICAL -> "Chronological";
             case NARRATIVE     -> "Narrative";
         });
-        select.addValueChangeListener(e -> refreshAllColumns(e.getValue()));
+        select.addValueChangeListener(e -> {
+            columns.forEach(col -> col.getDisplayOptions().setOrderMode(e.getValue()));
+            refreshAllColumns();
+        });
         return select;
     }
 
     // ── Column management ─────────────────────────────────────────────
 
     private void addColumn() {
-        final String[] selected = sourceSelector.getValue();
-        if (selected == null) {
-            Notification.show("Please select a source first");
-            return;
-        }
-
-        final DisplayOptions opts = DisplayOptions.defaults();
-        final SourceColumn col = new SourceColumn(
-             selected[0]   // sourceId
-            , selected[1]   // translation
-            , selected[2]   // abbreviation
-            , selected[3]   // direction
-            , opts);
+        final SourceColumn     col       = new SourceColumn(DisplayOptions.defaults());
+        final Div              verses    = buildVerseContainer();
+        final Select<String>   bookSel   = new Select<>();
+        final Select<Integer>  chapSel   = new Select<>();
 
         columns.add(col);
-        columnsLayout.add(buildColumnComponent(col));
+        columnsLayout.add(buildColumnComponent(col, verses, bookSel, chapSel));
     }
 
-    private VerticalLayout buildColumnComponent(final SourceColumn col) {
+    private void removeColumn(final SourceColumn col, final VerticalLayout colLayout) {
+        columns.remove(col);
+        columnsLayout.remove(colLayout);
+    }
+
+    // ── Column component ──────────────────────────────────────────────
+
+    private VerticalLayout buildColumnComponent(
+             final SourceColumn    col
+            , final Div             verseContainer
+            , final Select<String>  bookSelect
+            , final Select<Integer> chapterSelect) {
+
         final VerticalLayout colLayout = new VerticalLayout();
-        colLayout.setWidth("380px");
-        colLayout.setHeightFull();
         colLayout.getStyle()
+            .set("width", "33vw")
+            .set("min-width", "320px")
+            .set("height", "100%")
             .set("border-right", "1px solid var(--lumo-contrast-10pct)")
-            .set("overflow-y", "auto");
+            .set("overflow-y", "auto")
+            .set("padding", "0")
+            .set("flex-shrink", "0");
 
-        if (col.isRtl()) {
-            colLayout.getStyle().set("direction", "rtl");
-        }
-
-        // Column header with translation name and toggles
-        final Div verseContainer = buildVerseContainer(col);
         colLayout.add(
-             buildColumnHeader(col, colLayout, verseContainer)
-            , buildBookChapterSelector(col, verseContainer)
+             buildColumnHeader(col, colLayout, verseContainer, bookSelect, chapterSelect)
+            , buildNavBar(col, verseContainer, bookSelect, chapterSelect)
             , verseContainer);
 
+        colLayout.setFlexGrow(1, verseContainer);
         return colLayout;
     }
 
+    // ── Column header ─────────────────────────────────────────────────
+
     private HorizontalLayout buildColumnHeader(
-             final SourceColumn col
-            , final VerticalLayout colLayout
-            , final Div verseContainer) {
+             final SourceColumn    col
+            , final VerticalLayout  colLayout
+            , final Div             verseContainer
+            , final Select<String>  bookSelect
+            , final Select<Integer> chapterSelect) {
 
         final HorizontalLayout header = new HorizontalLayout();
         header.setWidthFull();
         header.setAlignItems(Alignment.CENTER);
         header.getStyle()
-            .set("padding", "4px 8px")
+            .set("padding", "6px 8px")
             .set("background", "var(--lumo-contrast-5pct)")
+            .set("border-bottom", "1px solid var(--lumo-contrast-10pct)")
             .set("position", "sticky")
-            .set("top", "0");
+            .set("top", "0")
+            .set("z-index", "1")
+            .set("flex-shrink", "0");
 
-        final H3 title = new H3(col.getAbbreviation());
-        title.getStyle().set("margin", "0").set("font-size", "14px");
+        // Source selector
+        final ComboBox<String[]> sourceCombo = new ComboBox<>();
+        sourceCombo.setPlaceholder("Select source...");
+        sourceCombo.setItemLabelGenerator(arr -> arr[2] + " — " + arr[1]);
+        sourceCombo.setItems(sources);
+        sourceCombo.setWidthFull();
+        sourceCombo.addValueChangeListener(e -> {
+            final String[] selected = e.getValue();
+            if (selected == null) return;
+            col.setSource(selected[0], selected[1], selected[2], selected[3]);
 
-        // Single dropdown controls all display structure + CAPS
+            // RTL direction
+            if (col.isRtl()) {
+                colLayout.getStyle().set("direction", "rtl");
+            } else {
+                colLayout.getStyle().remove("direction");
+            }
+
+            // Load books for this source
+            final List<String> books = queryService.listBooks(col.getSourceId());
+            bookSelect.setItems(books);
+            if (!books.isEmpty()) {
+                bookSelect.setValue(books.get(0));
+                // bookSelect value change listener will trigger verse load
+            }
+        });
+
+        // Display mode selector
         final Select<DisplayOptions.DisplayMode> modeSelect = new Select<>();
         modeSelect.setItems(DisplayOptions.DisplayMode.values());
         modeSelect.setValue(DisplayOptions.DisplayMode.CHAPTERS_VERSES);
         modeSelect.setItemLabelGenerator(DisplayOptions.DisplayMode::getLabel);
-        modeSelect.setItemEnabledProvider(
-            mode -> !mode.isDisabled());
-        modeSelect.addValueChangeListener(e -> {
-            col.getDisplayOptions().setMode(e.getValue());
-            refreshColumn(col, colLayout);
-        });
-
-        // Tooltip on the select element showing historical context for current mode
+        modeSelect.setItemEnabledProvider(mode -> !mode.isDisabled());
+        modeSelect.getStyle().set("min-width", "130px");
         modeSelect.getElement().setAttribute("title",
             DisplayOptions.DisplayMode.CHAPTERS_VERSES.getTooltip());
-        modeSelect.addValueChangeListener(e ->
-            modeSelect.getElement().setAttribute("title", e.getValue().getTooltip()));
-
-        final Button removeBtn = new Button(
-             VaadinIcon.CLOSE_SMALL.create()
-            , e -> removeColumn(col
-                , colLayout.getParent().map(p -> (HorizontalLayout) p).orElse(null)
-                , colLayout));
-        removeBtn.getStyle().set("margin-left", "auto");
-
-        header.add(title, modeSelect, removeBtn);
-        return header;
-    }
-
-    private HorizontalLayout buildBookChapterSelector(
-             final SourceColumn col
-            , final Div          verseContainer) {
-
-        final HorizontalLayout nav = new HorizontalLayout();
-        nav.setWidthFull();
-        nav.setAlignItems(Alignment.CENTER);
-        nav.getStyle().set("padding", "4px 8px");
-
-        final List<String> books = queryService.listBooks(col.getSourceId());
-
-        final Select<String> bookSelect = new Select<>();
-        bookSelect.setItems(books);
-        bookSelect.setPlaceholder("Book...");
-        if (!books.isEmpty()) {
-            bookSelect.setValue(books.get(0));
-            if (currentBook == null) {
-                currentBook = books.get(0);
-            }
-        }
-
-        final Select<Integer> chapterSelect = new Select<>();
-        chapterSelect.setItems(1);
-        chapterSelect.setValue(1);
-
-        bookSelect.addValueChangeListener(e -> {
-            currentBook    = e.getValue();
-            currentChapter = 1;
-            chapterSelect.setValue(1);
-            populateVerses(verseContainer, col);
-        });
-
-        chapterSelect.addValueChangeListener(e -> {
-            if (e.getValue() != null) {
-                currentChapter = e.getValue();
+        modeSelect.addValueChangeListener(e -> {
+            col.getDisplayOptions().setMode(e.getValue());
+            modeSelect.getElement().setAttribute("title", e.getValue().getTooltip());
+            if (col.getSourceId() != null && currentBook != null) {
                 populateVerses(verseContainer, col);
             }
         });
 
-        final Button prevBtn = new Button(
-             VaadinIcon.ANGLE_LEFT.create()
-            , e -> {
-                if (currentChapter > 1) {
-                    currentChapter--;
-                    chapterSelect.setValue(currentChapter);
+        // Sync toggle
+        final Button[] syncBtnHolder = new Button[1];
+        final Button syncBtn = new Button(VaadinIcon.LINK.create());
+        syncBtnHolder[0] = syncBtn;
+        syncBtn.getElement().setAttribute("title", "Synced — click to break sync");
+        syncBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY_INLINE);
+        syncBtn.addClickListener(e -> {
+            col.toggleSync();
+            if (col.isSynced()) {
+                syncBtn.setIcon(VaadinIcon.LINK.create());
+                syncBtn.getElement().setAttribute("title", "Synced — click to break sync");
+                if (col.getSourceId() != null && currentBook != null) {
+                    populateVerses(verseContainer, col);
                 }
-            });
+            } else {
+                syncBtn.setIcon(VaadinIcon.UNLINK.create());
+                syncBtn.getElement().setAttribute("title", "Unsynced — click to re-sync");
+            }
+        });
 
-        final Button nextBtn = new Button(
-             VaadinIcon.ANGLE_RIGHT.create()
-            , e -> {
-                currentChapter++;
-                chapterSelect.setValue(currentChapter);
-            });
+        // Remove column
+        final Button removeBtn = new Button(VaadinIcon.CLOSE_SMALL.create());
+        removeBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY_INLINE, ButtonVariant.LUMO_ERROR);
+        removeBtn.addClickListener(e -> removeColumn(col, colLayout));
+
+        header.add(sourceCombo, modeSelect, syncBtn, removeBtn);
+        header.setFlexGrow(1, sourceCombo);
+        return header;
+    }
+
+    // ── Navigation bar ────────────────────────────────────────────────
+
+    private HorizontalLayout buildNavBar(
+             final SourceColumn    col
+            , final Div             verseContainer
+            , final Select<String>  bookSelect
+            , final Select<Integer> chapterSelect) {
+
+        final HorizontalLayout nav = new HorizontalLayout();
+        nav.setWidthFull();
+        nav.setAlignItems(Alignment.CENTER);
+        nav.getStyle()
+            .set("padding", "4px 8px")
+            .set("border-bottom", "1px solid var(--lumo-contrast-10pct)")
+            .set("flex-shrink", "0");
+
+        bookSelect.setPlaceholder("Book...");
+        bookSelect.setWidthFull();
+        bookSelect.addValueChangeListener(e -> {
+            if (e.getValue() == null || col.getSourceId() == null) return;
+            chapterSelect.setItems(1);
+            chapterSelect.setValue(1);
+            if (col.isSynced()) {
+                currentBook    = e.getValue();
+                currentChapter = 1;
+                refreshSyncedColumns();
+            } else {
+                populateVerses(verseContainer, col);
+            }
+        });
+
+        chapterSelect.setItems(1);
+        chapterSelect.setValue(1);
+        chapterSelect.getStyle().set("min-width", "65px");
+        chapterSelect.addValueChangeListener(e -> {
+            if (e.getValue() == null || col.getSourceId() == null
+                    || bookSelect.getValue() == null) return;
+            if (col.isSynced()) {
+                currentChapter = e.getValue();
+                refreshSyncedColumns();
+            } else {
+                populateVerses(verseContainer, col);
+            }
+        });
+
+        final Button prevBtn = new Button(VaadinIcon.ANGLE_LEFT.create(), e -> {
+            final Integer cur = chapterSelect.getValue();
+            if (cur != null && cur > 1) chapterSelect.setValue(cur - 1);
+        });
+        final Button nextBtn = new Button(VaadinIcon.ANGLE_RIGHT.create(), e -> {
+            final Integer cur = chapterSelect.getValue();
+            if (cur != null) chapterSelect.setValue(cur + 1);
+        });
+        prevBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY_INLINE);
+        nextBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY_INLINE);
 
         nav.add(bookSelect, prevBtn, chapterSelect, nextBtn);
-
-        // Populate initial content
-        if (currentBook != null) {
-            populateVerses(verseContainer, col);
-        }
-
+        nav.setFlexGrow(1, bookSelect);
         return nav;
     }
 
-    private Div buildVerseContainer(final SourceColumn col) {
+    // ── Verse container ───────────────────────────────────────────────
+
+    private Div buildVerseContainer() {
         final Div container = new Div();
         container.setWidthFull();
-        container.getStyle().set("padding", "8px");
-        container.setId("verses-" + col.getSourceId());
-
-        if (currentBook != null) {
-            populateVerses(container, col);
-        } else {
-            container.add(new Paragraph("Select a book to begin reading."));
-        }
-
+        container.getStyle().set("padding", "12px 16px");
+        container.add(new Paragraph("Select a source and book to begin reading."));
         return container;
     }
 
     private void populateVerses(final Div container, final SourceColumn col) {
+        if (col.getSourceId() == null || currentBook == null) return;
+
         container.removeAll();
 
         final List<VerseRef> verses = queryService.getVerses(
@@ -293,32 +341,15 @@ public class ReaderView extends VerticalLayout {
             return;
         }
 
-        final DisplayOptions opts    = col.getDisplayOptions();
-        String               lastBook = null;
+        final DisplayOptions opts = col.getDisplayOptions();
 
         for (final VerseRef verse : verses) {
 
-            // Book boundary marker (always shown, even in streaming mode)
-            if (verse.getBookName() != null && !verse.getBookName().equals(lastBook)) {
-                final Div bookMarker = new Div();
-                bookMarker.getStyle()
-                    .set("border-top", "2px solid var(--lumo-primary-color)")
-                    .set("padding-top", "8px")
-                    .set("margin-top", "16px")
-                    .set("font-weight", "bold")
-                    .set("color", "var(--lumo-primary-color)");
-                bookMarker.add(new Span(verse.getBookName()));
-                container.add(bookMarker);
-                lastBook = verse.getBookName();
-            }
-
-            // Chapter heading: number always shown if chapters on,
-            // title shown below only if showChapterTitles is on
             if (opts.isShowChapters() && verse.getVerseNumber() == 1) {
                 final H2 chapterHeading = new H2("Chapter " + verse.getChapterNumber());
                 chapterHeading.getStyle()
                     .set("font-size", "16px")
-                    .set("margin", "12px 0 0 0")
+                    .set("margin", "12px 0 4px 0")
                     .set("color", "var(--lumo-secondary-text-color)");
                 container.add(chapterHeading);
 
@@ -331,14 +362,13 @@ public class ReaderView extends VerticalLayout {
                         .set("font-size", "13px")
                         .set("color", "var(--lumo-secondary-text-color)")
                         .set("display", "block")
-                        .set("margin-bottom", "6px");
+                        .set("margin-bottom", "8px");
                     container.add(chapterTitle);
                 }
             }
 
-            // Verse content
             final Div verseLine = new Div();
-            verseLine.getStyle().set("margin-bottom", "4px").set("line-height", "1.6");
+            verseLine.getStyle().set("margin-bottom", "4px").set("line-height", "1.7");
 
             if (opts.isShowVerses()) {
                 final Span verseNum = new Span(verse.getVerseNumber() + " ");
@@ -350,46 +380,39 @@ public class ReaderView extends VerticalLayout {
                 verseLine.add(verseNum);
             }
 
-            final Span verseText = new Span(verse.getDisplayContent(opts.isAllCaps()));
-            verseLine.add(verseText);
+            verseLine.add(new Span(verse.getDisplayContent(opts.isAllCaps())));
             container.add(verseLine);
         }
     }
 
-    private void refreshColumn(final SourceColumn col, final VerticalLayout colLayout) {
-        colLayout.getChildren()
+    // ── Sync helpers ──────────────────────────────────────────────────
+
+    private void refreshSyncedColumns() {
+        final List<com.vaadin.flow.component.Component> kids =
+            columnsLayout.getChildren().toList();
+        for (int i = 0; i < kids.size() && i < columns.size(); i++) {
+            final SourceColumn col = columns.get(i);
+            if (!col.isSynced() || col.getSourceId() == null) continue;
+            final VerticalLayout colLayout = (VerticalLayout) kids.get(i);
+            findVerseContainer(colLayout).ifPresent(div -> populateVerses(div, col));
+        }
+    }
+
+    private void refreshAllColumns() {
+        final List<com.vaadin.flow.component.Component> kids =
+            columnsLayout.getChildren().toList();
+        for (int i = 0; i < kids.size() && i < columns.size(); i++) {
+            final SourceColumn col = columns.get(i);
+            if (col.getSourceId() == null || currentBook == null) continue;
+            final VerticalLayout colLayout = (VerticalLayout) kids.get(i);
+            findVerseContainer(colLayout).ifPresent(div -> populateVerses(div, col));
+        }
+    }
+
+    private java.util.Optional<Div> findVerseContainer(final VerticalLayout colLayout) {
+        return colLayout.getChildren()
             .filter(c -> c instanceof Div)
             .map(c -> (Div) c)
-            .filter(d -> d.getId().isPresent())
-            .findFirst()
-            .ifPresent(div -> populateVerses(div, col));
-    }
-
-    private void refreshAllColumns(final OrderMode orderMode) {
-        columns.forEach(col -> col.getDisplayOptions().setOrderMode(orderMode));
-        columnsLayout.getChildren()
-            .filter(c -> c instanceof VerticalLayout)
-            .forEach(colLayout -> {
-                final SourceColumn col = columns.stream()
-                    .filter(c -> colLayout.getId()
-                        .map(id -> id.equals(c.getSourceId()))
-                        .orElse(false))
-                    .findFirst()
-                    .orElse(null);
-                if (col != null) {
-                    refreshColumn(col, (VerticalLayout) colLayout);
-                }
-            });
-    }
-
-    private void removeColumn(
-             final SourceColumn col
-            , final HorizontalLayout parent
-            , final VerticalLayout colLayout) {
-
-        columns.remove(col);
-        if (parent != null) {
-            parent.remove(colLayout);
-        }
+            .findFirst();
     }
 }

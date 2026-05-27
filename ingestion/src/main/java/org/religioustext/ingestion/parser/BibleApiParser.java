@@ -174,12 +174,27 @@ public class BibleApiParser {
             , final int                      canonicalOrder
             , final String                   testament
             , final List<ParsedChapter>      chapters) {
+        return serialiseBook(translationDef, bookName, bookAltName
+            , canonicalOrder, testament, chapters, null);
+    }
+
+    public String serialiseBook(
+             final TranslationDef           translationDef
+            , final String                   bookName
+            , final String                   bookAltName
+            , final int                      canonicalOrder
+            , final String                   testament
+            , final List<ParsedChapter>      chapters
+            , final String                   bookCode) {
 
         final StringBuilder sb = new StringBuilder();
         sb.append("<book xmlns=\"http://religioustext.org/schema/1.0\"");
         sb.append(" name=\"").append(escapeXml(bookName)).append("\"");
         sb.append(" canonicalOrder=\"").append(canonicalOrder).append("\"");
         sb.append(" testament=\"").append(testament).append("\"");
+        if (bookCode != null) {
+            sb.append(" code=\"").append(escapeXml(bookCode)).append("\"");
+        }
         if (bookAltName != null) {
             sb.append(" altName=\"").append(escapeXml(bookAltName)).append("\"");
         }

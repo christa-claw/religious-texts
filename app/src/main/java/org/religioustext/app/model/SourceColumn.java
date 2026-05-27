@@ -9,11 +9,16 @@ package org.religioustext.app.model;
  */
 public final class SourceColumn {
 
-    private final String         sourceId;
-    private final String         translation;
-    private final String         abbreviation;
-    private final String         direction;
+    private String         sourceId;
+    private String         translation;
+    private String         abbreviation;
+    private String         direction;
     private final DisplayOptions displayOptions;
+    private boolean        synced = true;
+
+    public SourceColumn(final DisplayOptions displayOptions) {
+        this.displayOptions = displayOptions;
+    }
 
     public SourceColumn(
          final String         sourceId
@@ -34,6 +39,17 @@ public final class SourceColumn {
     public String         getAbbreviation()   { return abbreviation; }
     public String         getDirection()      { return direction; }
     public DisplayOptions getDisplayOptions() { return displayOptions; }
+    public boolean        isSynced()          { return synced; }
+
+    public void setSource(final String sourceId, final String translation,
+                          final String abbreviation, final String direction) {
+        this.sourceId    = sourceId;
+        this.translation = translation;
+        this.abbreviation = abbreviation;
+        this.direction   = direction;
+    }
+
+    public void toggleSync() { this.synced = !this.synced; }
 
     public boolean isRtl() {
         return "rtl".equalsIgnoreCase(direction);
