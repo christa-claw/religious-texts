@@ -20,6 +20,7 @@ public final class IngestionRequest {
     private final Integer      year;
     private final String       license;
     private final String       region;
+    private final String       attributionUrl;
 
     private IngestionRequest(final Builder builder) {
         this.sourceUrl     = builder.sourceUrl;
@@ -33,6 +34,7 @@ public final class IngestionRequest {
         this.year          = builder.year;
         this.license       = builder.license;
         this.region        = builder.region;
+        this.attributionUrl = builder.attributionUrl;
     }
 
     public String       getSourceUrl()     { return sourceUrl; }
@@ -46,6 +48,7 @@ public final class IngestionRequest {
     public Integer      getYear()          { return year; }
     public String       getLicense()       { return license; }
     public String       getRegion()        { return region; }
+    public String       getAttributionUrl(){ return attributionUrl; }
 
     public static Builder builder() { return new Builder(); }
 
@@ -62,6 +65,7 @@ public final class IngestionRequest {
         private Integer      year;
         private String       license;
         private String       region;
+        private String       attributionUrl;
 
         public Builder sourceUrl(final String sourceUrl) {
             this.sourceUrl = sourceUrl;
@@ -115,6 +119,11 @@ public final class IngestionRequest {
 
         public Builder region(final String region) {
             this.region = region;
+            return this;
+        }
+
+        public Builder attributionUrl(final String attributionUrl) {
+            this.attributionUrl = attributionUrl;
             return this;
         }
 

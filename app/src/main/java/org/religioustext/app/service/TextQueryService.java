@@ -47,10 +47,10 @@ public class TextQueryService {
     public List<String[]> listSources() {
         final String xquery = NS_DECL
             + "for $t in db:open('" + baseXProperties.database() + "')//rt:text "
-            + "return string-join(($t/@id,$t/@translation,$t/@abbreviation,$t/@direction),'|')";
+            + "return string-join(($t/@id,$t/@translation,$t/@abbreviation,$t/@direction,$t/@license,$t/@source),'|')";
 
         return executeQuery(xquery).stream()
-            .map(row -> row.split("\\|"))
+            .map(row -> row.split("\\|", -1))
             .toList();
     }
 

@@ -61,7 +61,8 @@ public class BaseXStore {
             , final String direction
             , final String license
             , final Integer year
-            , final String region) {
+            , final String region
+            , final String attributionUrl) {
 
         log.info("Creating root document: {}", documentId);
 
@@ -78,6 +79,7 @@ public class BaseXStore {
         xml.append(" license=\"").append(escapeXml(license != null ? license : "Public Domain")).append("\"");
         if (year != null) xml.append(" year=\"").append(year).append("\"");
         if (region != null) xml.append(" region=\"").append(escapeXml(region)).append("\"");
+        if (attributionUrl != null) xml.append(" source=\"").append(escapeXml(attributionUrl)).append("\"");
         xml.append("/>");
 
         put(documentId, xml.toString());

@@ -64,6 +64,7 @@ public class BibleSourcesConfig {
             .year(def.getYear())
             .license(def.getLicense() != null ? def.getLicense() : "Public Domain")
             .region(def.getRegion())
+            .attributionUrl(def.getSourceUrl())
             .build();
     }
 
@@ -79,6 +80,7 @@ public class BibleSourcesConfig {
         private Integer year;
         private String  license;
         private String  region;
+        private String  sourceUrl;
 
         public String  getId()            { return id; }
         public String  getTranslation()   { return translation; }
@@ -92,6 +94,7 @@ public class BibleSourcesConfig {
         public Integer getYear()          { return year; }
         public String  getLicense()       { return license; }
         public String  getRegion()        { return region; }
+        public String  getSourceUrl()     { return sourceUrl; }
 
         public void setId(final String id)                       { this.id = id; }
         public void setTranslation(final String v)               { this.translation = v; }
@@ -104,5 +107,6 @@ public class BibleSourcesConfig {
         public void setYear(final Integer v)                     { this.year = v; }
         public void setLicense(final String v)                   { this.license = v; }
         public void setRegion(final String v)                    { this.region = v; }
+        public void setSourceUrl(final String v)                 { this.sourceUrl = v; }
     }
 }

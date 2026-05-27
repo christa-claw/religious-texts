@@ -86,7 +86,8 @@ public class IngestionService {
             , request.getDirection()
             , request.getLicense()
             , request.getYear()
-            , request.getRegion());
+            , request.getRegion()
+            , request.getAttributionUrl());
 
         // Step 3: Producer/consumer pipeline
         final BlockingQueue<CrawledBook> queue =

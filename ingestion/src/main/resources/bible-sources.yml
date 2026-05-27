@@ -1,6 +1,7 @@
 # Bible translation sources
 # apiBibleId: used for full API.Bible ingestion OR title-only lookup
 # localCode:  if set, text comes from local clone; apiBibleId used for titles only
+# sourceUrl:  canonical URL for attribution — link back to original source
 
 translations:
 
@@ -15,6 +16,7 @@ translations:
     direction: ltr
     year: 1611
     license: Public Domain
+    sourceUrl: https://www.bible.com/bible/1/GEN.1
     region: Protestant
 
   - id: bible-asv-1901
@@ -27,6 +29,7 @@ translations:
     direction: ltr
     year: 1901
     license: Public Domain
+    sourceUrl: https://www.bible.com/bible/12/GEN.1
     region: Protestant
 
   - id: bible-web
@@ -38,6 +41,7 @@ translations:
     iso639_3: eng
     direction: ltr
     license: Public Domain
+    sourceUrl: https://worldenglish.bible
     region: Protestant
 
   - id: bible-dra-1899
@@ -50,6 +54,7 @@ translations:
     direction: ltr
     year: 1899
     license: Public Domain
+    sourceUrl: https://www.drbo.org
     region: Catholic
 
   - id: bible-rvr09-1909
@@ -62,6 +67,7 @@ translations:
     direction: ltr
     year: 1909
     license: Public Domain
+    sourceUrl: https://www.bible.com/bible/149/GEN.1
     region: Protestant
 
   # ── Full API.Bible translations (text + titles from API.Bible) ────────
@@ -74,6 +80,7 @@ translations:
     direction: ltr
     year: 2011
     license: Licensed
+    sourceUrl: https://www.thenivbible.com
     region: Protestant
 
   - id: bible-nasb-2020
@@ -85,6 +92,7 @@ translations:
     direction: ltr
     year: 2020
     license: Licensed
+    sourceUrl: https://www.lockman.org/new-american-standard-bible-nasb
     region: Protestant
 
   - id: bible-nbla
@@ -95,6 +103,7 @@ translations:
     iso639_3: spa
     direction: ltr
     license: Licensed
+    sourceUrl: https://nbla.com
     region: Protestant
 
   - id: bible-lut1912
@@ -106,6 +115,7 @@ translations:
     direction: ltr
     year: 1912
     license: Public Domain
+    sourceUrl: https://www.bible.com/bible/51/GEN.1
     region: Protestant
 
   - id: bible-aeuut
@@ -116,6 +126,7 @@ translations:
     iso639_3: fin
     direction: ltr
     license: Licensed
+    sourceUrl: https://www.agricola.fi
     region: Protestant
 
   - id: bible-nav
@@ -126,6 +137,7 @@ translations:
     iso639_3: arb
     direction: rtl
     license: Licensed
+    sourceUrl: https://www.bible.com/bible/2305/GEN.1
     region: Protestant
 
   - id: bible-wlc
@@ -136,6 +148,7 @@ translations:
     iso639_3: hbo
     direction: rtl
     license: Public Domain
+    sourceUrl: https://www.tanach.us
     region: Protestant
 
   - id: bible-grctr
@@ -146,4 +159,5 @@ translations:
     iso639_3: grc
     direction: ltr
     license: Public Domain
+    sourceUrl: https://www.bible.com/bible/156/GEN.1
     region: Protestant

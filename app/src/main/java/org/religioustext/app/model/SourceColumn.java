@@ -13,6 +13,8 @@ public final class SourceColumn {
     private String         translation;
     private String         abbreviation;
     private String         direction;
+    private String         license;
+    private String         attributionUrl;
     private final DisplayOptions displayOptions;
     private boolean        synced = true;
 
@@ -34,19 +36,30 @@ public final class SourceColumn {
         this.displayOptions = displayOptions;
     }
 
-    public String         getSourceId()       { return sourceId; }
-    public String         getTranslation()    { return translation; }
-    public String         getAbbreviation()   { return abbreviation; }
-    public String         getDirection()      { return direction; }
-    public DisplayOptions getDisplayOptions() { return displayOptions; }
-    public boolean        isSynced()          { return synced; }
+    public String         getSourceId()        { return sourceId; }
+    public String         getTranslation()     { return translation; }
+    public String         getAbbreviation()    { return abbreviation; }
+    public String         getDirection()       { return direction; }
+    public String         getLicense()         { return license; }
+    public String         getAttributionUrl()  { return attributionUrl; }
+    public DisplayOptions getDisplayOptions()  { return displayOptions; }
+    public boolean        isSynced()           { return synced; }
 
     public void setSource(final String sourceId, final String translation,
+                          final String abbreviation, final String direction,
+                          final String license, final String attributionUrl) {
+        this.sourceId       = sourceId;
+        this.translation    = translation;
+        this.abbreviation   = abbreviation;
+        this.direction      = direction;
+        this.license        = license;
+        this.attributionUrl = attributionUrl;
+    }
+
+    // Keep old signature for compatibility
+    public void setSource(final String sourceId, final String translation,
                           final String abbreviation, final String direction) {
-        this.sourceId    = sourceId;
-        this.translation = translation;
-        this.abbreviation = abbreviation;
-        this.direction   = direction;
+        setSource(sourceId, translation, abbreviation, direction, null, null);
     }
 
     public void toggleSync() { this.synced = !this.synced; }
