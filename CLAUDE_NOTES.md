@@ -1,7 +1,7 @@
 # Religious Texts Platform — Claude Notes
 
 Running notes updated by Claude on request.
-Last updated: 2026-05-26 (session 2)
+Last updated: 2026-05-27 (session 3)
 
 ---
 
@@ -304,7 +304,8 @@ Both databases run in Docker (`religioustext-basex`, `religioustext-mysql`).
 
 - [ ] Commentary ingestion not started — need open source dataset.
 
-- [ ] User comments not wired to UI — MySQL tables exist, needs Spring Security + login.
+- [ ] **User comments not wired to UI** — MySQL schema written, JPA entities written, needs Spring Security + login + `uuid-creator` dependency added to pom.xml
+- [ ] **Add `uuid-creator` dependency** — `com.github.f4b6a3:uuid-creator` needed for `TypedId.java`
 
 - [ ] TextQueryService uses document path without `.xml` suffix — may need updating
       to match BaseX storage format `bible-niv-2011.xml`.
@@ -313,15 +314,48 @@ Both databases run in Docker (`religioustext-basex`, `religioustext-mysql`).
 
 ---
 
+## Session 3 Notes (2026-05-27)
+
+### UI
+- `ReaderView.java` rewritten with continuous scroll — IntersectionObserver, book-level DOM window (prev+current+next book), chapter selector tracks scroll position, synced columns navigate together
+- `AboutView.java` created at `/about` — hero, 6-step how-to, available texts grid, sources & attribution, comments CTA, about section, footer
+- Both files written directly to project filesystem
+- `ReaderView` toolbar now has About & Help link
+
+### MySQL Schema & Entities
+- Schema: `app/src/main/resources/db/migration/V1__initial_schema.sql`
+- Tables: `users`, `comments`, `comment_references`, `personal_notes`, `blocked_domains`
+- `TypedId.java` utility: `app/src/main/java/org/religioustext/app/util/TypedId.java`
+- JPA entities: `User`, `Comment`, `CommentReference`, `PersonalNote`, `BlockedDomain`
+  in `app/src/main/java/org/religioustext/app/model/user/`
+
+### Comment System Design
+- Private by default; author can make public
+- Making public: external refs present → `moderation_status=pending`; no external refs → `approved` immediately
+- Approved public comments retractable by author at any time
+- Rejected comments revert to private with `rejection_reason` shown to author
+- `CommentReference` supports internal (verse in DB) and external (URL) references
+- One comment can reference multiple verses across different traditions
+- External links open in new tab (`target=_blank rel=noopener noreferrer`)
+- Private: no URL checking; public with external URLs: checked against `blocked_domains`
+
+### Typed ID Format
+- Format: `{3-char prefix}-{uuid-v7}` e.g. `cmt-018e7b2d-8a1c-7b3f-8d2e-4a5b6c7d8e9f`
+- UUID v7 is time-ordered — IDs sort by creation time
+- Type readable from first 3 chars; requires `com.github.f4b6a3:uuid-creator` in pom.xml
+- Prefixes: `usr-` users, `cmt-` comments, `ref-` references, `nte-` notes, `blk-` blocked domains
+
+---
+
 ## Next Session Priorities
 
-1. Build About + Help page (`/about`) — warm intro, how-to, sources & licensing, comment auth CTA
+1. Add `uuid-creator` to pom.xml and wire Spring Security + Flyway for MySQL
 2. Fix NIV abbreviated book names — re-ingest via API.Bible path
-3. Continuous scroll — IntersectionObserver, book-level DOM window, chapter selector tracking
+3. Start Quran ingestion via fawazahmed0/quran-api
 4. Commentary cross-reference links via verse anchors
-5. Spring Security — open registration, comment auth only
-6. Start Quran ingestion
-7. Standardise document naming (`.xml` suffix inconsistency)
+5. Trigger NASB20 + NBLA from API.Bible
+6. Standardise document naming (`.xml` suffix inconsistency)
+7. Bulk translation import (200+ languages in local clone)
 
 ---
 
