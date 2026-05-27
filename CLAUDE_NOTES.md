@@ -349,7 +349,8 @@ Both databases run in Docker (`religioustext-basex`, `religioustext-mysql`).
 
 ## Next Session Priorities
 
-1. Add `uuid-creator` to pom.xml and wire Spring Security + Flyway for MySQL
+1. Add donate option — Ko-fi or GitHub Sponsors link in About page footer + subtle icon in toolbar
+2. Add `uuid-creator` to pom.xml and wire Spring Security + Flyway for MySQL
 2. Fix NIV abbreviated book names — re-ingest via API.Bible path
 3. Start Quran ingestion via fawazahmed0/quran-api
 4. Commentary cross-reference links via verse anchors
