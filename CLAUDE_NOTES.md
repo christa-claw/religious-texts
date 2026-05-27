@@ -261,16 +261,26 @@ BaseX currently contains:
 - **Fixed** `LocalIngestionService.java` `BOOK_META` folder name mismatches: `sirach`→`ecclesiasticus`, `manasses`→`manasseh`, `bel`→`belandthedragon`, added `esther(greek)`
 - KJV re-ingested cleanly — 80 books, correct canonical order, 36,820 verses
 - Committed and pushed all changes
-- Added `code` attribute to `<book>` elements in BaseX via XQuery update (no re-ingest needed)
-- All books across KJV, ASV, WEB, DRA, RVR09 now have canonical book codes (GEN, EXO... REV)
-- NIV still has abbreviated book names and no codes — needs re-ingestion via API.Bible path
-- Fixed WEB/DRA alternate folder names in BOOK_META (wisdomofsolomon, prayerofmanasses, daniel(greek), psalm151)
-- Added full RVR09 Spanish folder name mappings to BOOK_META
-- Fixed capitalisation: Sanjuan/Sanmarcos/Sanlucas/Sanmateo
+- Added `sourceUrl` attribution to all 13 translations in `bible-sources.yml`
+- Wired `attributionUrl` through `BibleSourcesConfig` → `IngestionRequest` → `BaseXStore.createRootDocument()` → XML `source=` attribute
+- `TextQueryService.listSources()` now returns license (index 4) and source URL (index 5)
+- `SourceColumn` stores `license` and `attributionUrl`
+- `ReaderView` column header shows ℹ️ anchor linking to source when available
+- Patched existing BaseX documents with source URLs via XQuery (no re-ingest needed)
+- Planned: About + Help page at `/about` with sources & licensing section
 
 ---
 
-## Known Issues / TODOs
+### Infrastructure
+
+| Component | Technology | Port |
+|---|---|---|
+| Text database | BaseX 10 (native XML) | 8984 |
+| User/comment database | MySQL 8.3 | 3306 |
+| App server | Embedded Tomcat (app module) | 8090 |
+| Ingestion service | Embedded Tomcat (ingestion module) | 8091 |
+
+Both databases run in Docker (`religioustext-basex`, `religioustext-mysql`).
 
 - [ ] **application.properties missing local import** — `spring.config.import` only has
       `bible-sources.yml`, not `application-local.properties`. Fix:
@@ -305,12 +315,13 @@ BaseX currently contains:
 
 ## Next Session Priorities
 
-1. Fix NIV abbreviated book names in BibleApiParser
-2. Trigger API.Bible translations (NASB20, NBLA, LUT1912, AEUUT, NAV, WLC, GRCTR)
-3. Standardise document naming (with vs without `.xml` suffix)
-4. Start Quran ingestion
-5. Fix schema validation namespace issue
-6. Add Spring Security + login + user comments UI
+1. Build About + Help page (`/about`) — warm intro, how-to, sources & licensing, comment auth CTA
+2. Fix NIV abbreviated book names — re-ingest via API.Bible path
+3. Continuous scroll — IntersectionObserver, book-level DOM window, chapter selector tracking
+4. Commentary cross-reference links via verse anchors
+5. Spring Security — open registration, comment auth only
+6. Start Quran ingestion
+7. Standardise document naming (`.xml` suffix inconsistency)
 
 ---
 

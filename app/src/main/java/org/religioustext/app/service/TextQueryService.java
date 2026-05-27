@@ -66,6 +66,18 @@ public class TextQueryService {
         return executeQuery(xquery);
     }
 
+    public List<String[]> listBooksWithChapterCounts(final String sourceId) {
+        final String xquery = NS_DECL
+            + "for $b in db:open('" + baseXProperties.database() + "')"
+            + "//rt:text[@id='" + sourceId + "']//rt:book "
+            + "order by xs:integer($b/@canonicalOrder) "
+            + "return string-join((string($b/@name), string(count($b/rt:chapter))), '|')";
+
+        return executeQuery(xquery).stream()
+            .map(row -> row.split("\\|", -1))
+            .toList();
+    }
+
     public String getBookCode(final String sourceId, final String bookName) {
         final String xquery = NS_DECL
             + "string(db:open('" + baseXProperties.database() + "')"
