@@ -19,6 +19,7 @@ public final class VerseRef {
     private final Integer globalChronologicalSeq;
     private final Integer globalNarrativeSeq;
     private final String  note;
+    private final String  bookCode;
 
     private VerseRef(final Builder builder) {
         this.sourceId               = builder.sourceId;
@@ -32,6 +33,7 @@ public final class VerseRef {
         this.globalChronologicalSeq = builder.globalChronologicalSeq;
         this.globalNarrativeSeq     = builder.globalNarrativeSeq;
         this.note                   = builder.note;
+        this.bookCode               = builder.bookCode;
     }
 
     // ── Getters ───────────────────────────────────────────────────────
@@ -47,6 +49,7 @@ public final class VerseRef {
     public Integer getGlobalChronologicalSeq() { return globalChronologicalSeq; }
     public Integer getGlobalNarrativeSeq()     { return globalNarrativeSeq; }
     public String  getNote()                   { return note; }
+    public String  getBookCode()               { return bookCode; }
 
     /**
      * Returns the display content, uppercased if allCaps is set.
@@ -101,6 +104,7 @@ public final class VerseRef {
         private Integer globalChronologicalSeq;
         private Integer globalNarrativeSeq;
         private String  note;
+        private String  bookCode;
 
         public Builder sourceId(final String sourceId) {
             this.sourceId = sourceId;
@@ -154,6 +158,11 @@ public final class VerseRef {
 
         public Builder note(final String note) {
             this.note = note;
+            return this;
+        }
+
+        public Builder bookCode(final String bookCode) {
+            this.bookCode = bookCode;
             return this;
         }
 

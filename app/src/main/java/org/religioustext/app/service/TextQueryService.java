@@ -11,7 +11,9 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Base64;
@@ -64,6 +66,15 @@ public class TextQueryService {
         return executeQuery(xquery);
     }
 
+    public String getBookCode(final String sourceId, final String bookName) {
+        final String xquery = NS_DECL
+            + "string(db:open('" + baseXProperties.database() + "')"
+            + "//rt:text[@id='" + sourceId + "']"
+            + "//rt:book[@name='" + bookName + "']/@code)";
+        final List<String> results = executeQuery(xquery);
+        return results.isEmpty() ? null : results.get(0);
+    }
+
     public List<VerseRef> getVerses(
              final String         sourceId
             , final String         bookName
@@ -71,9 +82,11 @@ public class TextQueryService {
             , final DisplayOptions options) {
 
         final String xquery = NS_DECL
-            + "for $v in db:open('" + baseXProperties.database() + "')"
+            + "let $book := db:open('" + baseXProperties.database() + "')"
             + "//rt:text[@id='" + sourceId + "']"
-            + "//rt:book[@name='" + bookName + "']"
+            + "//rt:book[@name='" + bookName + "'] "
+            + "let $code := string($book/@code) "
+            + "for $v in $book"
             + "//rt:chapter[@number='" + chapterNumber + "']"
             + "//rt:verse "
             + "order by xs:integer($v/@number) "
@@ -81,7 +94,8 @@ public class TextQueryService {
             + "string($v/@number),string($v/@bookName),string($v/@bookAltName),"
             + "string($v/@chapterNumber),string($v/@chapterTitle),"
             + "string($v/@globalCanonicalSeq),string($v/@globalChronologicalSeq),"
-            + "string($v/@globalNarrativeSeq),string($v/@note),string($v)"
+            + "string($v/@globalNarrativeSeq),string($v/@note),string($v),"
+            + "$code"
             + "),'|||')";
 
         return executeQuery(xquery).stream()
@@ -125,9 +139,12 @@ public class TextQueryService {
     private List<String> executeQuery(final String xquery) {
         final List<String> results = new ArrayList<>();
         try {
-            final String url = baseXProperties.uri()
-                + "/" + baseXProperties.database()
-                + "?query=" + java.net.URLEncoder.encode(xquery, StandardCharsets.UTF_8);
+            final URI uri = UriComponentsBuilder
+                .fromHttpUrl(baseXProperties.uri() + "/" + baseXProperties.database())
+                .queryParam("query", xquery)
+                .build(false)
+                .encode(StandardCharsets.UTF_8)
+                .toUri();
 
             final HttpHeaders headers = new HttpHeaders();
             final String credentials = baseXProperties.username()
@@ -138,7 +155,7 @@ public class TextQueryService {
             headers.set("Accept", "text/plain");
 
             final ResponseEntity<String> response = restTemplate.exchange(
-                 url
+                 uri
                 , HttpMethod.GET
                 , new HttpEntity<>(headers)
                 , String.class);
@@ -168,6 +185,7 @@ public class TextQueryService {
             .globalNarrativeSeq(parseIntegerSafe(parts, 7))
             .note(partAt(parts, 8))
             .content(partAt(parts, 9))
+            .bookCode(partAt(parts, 10))
             .build();
     }
 

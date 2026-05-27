@@ -30,15 +30,14 @@ public final class DisplayOptions {
             , true,  false, false, false)
 
         , CHAPTERS_VERSES(
-             "Chapters + Verses"
+             "Verses"
             , "Verses added by Robert Estienne (Stephanus), 1551 AD"
             , true,  true,  false, false)
 
         , TITLES(
              "Titles"
-            , "Section titles are editorial additions varying by publisher. "
-            + "Not yet available in current data sources"
-            , true,  true,  false, true);
+            , "Section titles are editorial additions varying by publisher"
+            , true,  true,  false, false);
 
         private final String  label;
         private final String  tooltip;
@@ -81,7 +80,7 @@ public final class DisplayOptions {
     public DisplayMode getMode()              { return mode; }
     public OrderMode   getOrderMode()         { return orderMode; }
     public boolean     isShowChapters()       { return mode.isShowChapters(); }
-    public boolean     isShowChapterTitles()  { return false; }  // deferred
+    public boolean     isShowChapterTitles()  { return mode == DisplayMode.TITLES; }
     public boolean     isShowVerses()         { return mode.isShowVerses(); }
     public boolean     isAllCaps()            { return mode.isAllCaps(); }
 
