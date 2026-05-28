@@ -42,7 +42,7 @@ public class IngestionService {
 
     private static final Logger log             = LoggerFactory.getLogger(IngestionService.class);
     private static final int    MAX_CRAWL_THREADS = 5;
-    private static final CrawledBook POISON_PILL = new CrawledBook(null, null, 0, null, null, 0);
+    private static final CrawledBook POISON_PILL = new CrawledBook(null, null, 0, null, null, 0, null);
 
     private final ApiBibleCrawler crawler;
     private final BibleApiParser  parser;
@@ -57,9 +57,49 @@ public class IngestionService {
         this.store   = store;
     }
 
+    // Maps API.Bible book IDs to canonical full names
+    private static final Map<String, String> BOOK_NAMES = Map.ofEntries(
+        Map.entry("GEN", "Genesis"),        Map.entry("EXO", "Exodus"),
+        Map.entry("LEV", "Leviticus"),       Map.entry("NUM", "Numbers"),
+        Map.entry("DEU", "Deuteronomy"),     Map.entry("JOS", "Joshua"),
+        Map.entry("JDG", "Judges"),          Map.entry("RUT", "Ruth"),
+        Map.entry("1SA", "1 Samuel"),        Map.entry("2SA", "2 Samuel"),
+        Map.entry("1KI", "1 Kings"),         Map.entry("2KI", "2 Kings"),
+        Map.entry("1CH", "1 Chronicles"),    Map.entry("2CH", "2 Chronicles"),
+        Map.entry("EZR", "Ezra"),            Map.entry("NEH", "Nehemiah"),
+        Map.entry("EST", "Esther"),          Map.entry("JOB", "Job"),
+        Map.entry("PSA", "Psalms"),          Map.entry("PRO", "Proverbs"),
+        Map.entry("ECC", "Ecclesiastes"),    Map.entry("SNG", "Song of Solomon"),
+        Map.entry("ISA", "Isaiah"),          Map.entry("JER", "Jeremiah"),
+        Map.entry("LAM", "Lamentations"),    Map.entry("EZK", "Ezekiel"),
+        Map.entry("DAN", "Daniel"),          Map.entry("HOS", "Hosea"),
+        Map.entry("JOL", "Joel"),            Map.entry("AMO", "Amos"),
+        Map.entry("OBA", "Obadiah"),         Map.entry("JON", "Jonah"),
+        Map.entry("MIC", "Micah"),           Map.entry("NAM", "Nahum"),
+        Map.entry("HAB", "Habakkuk"),        Map.entry("ZEP", "Zephaniah"),
+        Map.entry("HAG", "Haggai"),          Map.entry("ZEC", "Zechariah"),
+        Map.entry("MAL", "Malachi"),         Map.entry("MAT", "Matthew"),
+        Map.entry("MRK", "Mark"),            Map.entry("LUK", "Luke"),
+        Map.entry("JHN", "John"),            Map.entry("ACT", "Acts"),
+        Map.entry("ROM", "Romans"),          Map.entry("1CO", "1 Corinthians"),
+        Map.entry("2CO", "2 Corinthians"),   Map.entry("GAL", "Galatians"),
+        Map.entry("EPH", "Ephesians"),       Map.entry("PHP", "Philippians"),
+        Map.entry("COL", "Colossians"),      Map.entry("1TH", "1 Thessalonians"),
+        Map.entry("2TH", "2 Thessalonians"), Map.entry("1TI", "1 Timothy"),
+        Map.entry("2TI", "2 Timothy"),       Map.entry("TIT", "Titus"),
+        Map.entry("PHM", "Philemon"),        Map.entry("HEB", "Hebrews"),
+        Map.entry("JAS", "James"),           Map.entry("1PE", "1 Peter"),
+        Map.entry("2PE", "2 Peter"),         Map.entry("1JN", "1 John"),
+        Map.entry("2JN", "2 John"),          Map.entry("3JN", "3 John"),
+        Map.entry("JUD", "Jude"),            Map.entry("REV", "Revelation")
+    );
+
+    private String resolveBookName(final String bookId, final String apiFallback) {
+        return BOOK_NAMES.getOrDefault(bookId, apiFallback);
+    }
+
     @SuppressWarnings("unchecked")
     public String ingest(final IngestionRequest request) throws Exception {
-        final String translationId = request.getAbbreviation();
         final String documentId    = buildDocumentId(request);
         final String bibleId       = extractBibleId(request);
 
@@ -113,7 +153,8 @@ public class IngestionService {
                         , crawled.bookAltName()
                         , crawled.canonicalOrder()
                         , crawled.testament()
-                        , crawled.chapters());
+                        , crawled.chapters()
+                        , crawled.bookCode());
 
                     store.insertBook(documentId, bookXml);
 
@@ -144,7 +185,7 @@ public class IngestionService {
 
         books.forEach(book -> crawlPool.submit(() -> {
             final String bookId   = (String) book.get("id");
-            final String bookName = (String) book.get("name");
+            final String bookName = resolveBookName(bookId, (String) book.get("name"));
             final int    order;
             synchronized (orderCounter) { order = ++orderCounter[0]; }
             final String testament = order <= 39 ? "OT" : "NT";
@@ -161,7 +202,7 @@ public class IngestionService {
                     .toList();
 
                 queue.put(new CrawledBook(
-                     bookName, null, order, testament, chapters, 0));
+                     bookName, null, order, testament, chapters, 0, bookId));
 
             } catch (final InterruptedException e) {
                 Thread.currentThread().interrupt();
@@ -206,5 +247,6 @@ public class IngestionService {
         , int               canonicalOrder
         , String            testament
         , List<ParsedChapter> chapters
-        , int               unused) {}
+        , int               unused
+        , String            bookCode) {}
 }
