@@ -224,7 +224,7 @@ Producer/consumer pattern:
 
 | Translation | Language | Status |
 |---|---|---|
-| NIV 2011 | English | ✅ Complete — 30,752 verses, chapter titles working |
+| NIV 2011 | English | ✅ Complete — 30,752 verses, full book names fixed, re-ingested 2026-05-28 |
 | KJV 1611 | English | ✅ Complete — 36,820 verses (inc. Apocrypha), canonical order fixed |
 | ASV 1901 | English | ✅ Complete — local clone |
 | WEB | English | ✅ Complete — local clone |
@@ -240,7 +240,7 @@ Producer/consumer pattern:
 | Quran | Multiple | ❌ Not started |
 
 BaseX currently contains:
-- `bible-niv-2011.xml` (183KB, 30,752 verses) ✅
+- `bible-niv-2011` (30,752 verses, full book names, source attr) ✅
 - `bible-kjv-1611` (187KB, 36,820 verses inc. Apocrypha) ✅
 - `bible-asv-1901` (158KB) ✅
 - `bible-dra-1899` (181KB) ✅
@@ -290,10 +290,10 @@ Both databases run in Docker (`religioustext-basex`, `religioustext-mysql`).
       ```
       This causes 401 Unauthorized when triggering ingestion.
 
+- [ ] **API.Bible monthly limit** — 5K requests/month (not daily). NIV re-ingested 2026-05-28. NASB20 and NBLA must wait until ~late June 2026. Schedule re-ingestion monthly if translations are updated.
 - [ ] **Bulk import all local clone translations** — the local clone has 200+ translations across dozens of languages. Future task: iterate all folders in `/Volumes/VMs/data/bible-api-source/bibles/`, auto-generate `bible-sources.yml` entries, and ingest everything. Will need language detection from folder name prefix and a smarter `BOOK_META` fallback for non-Latin scripts.
 
-- [ ] **NIV book names abbreviated** — API.Bible returns short names (e.g. `Lev.` instead
-      of `Leviticus`). Need to map API.Bible book IDs to full display names in parser.
+- [x] **NIV book names abbreviated** — FIXED. `IngestionService` now maps API.Bible book IDs to canonical names via `BOOK_NAMES` map. NIV re-ingested 2026-05-28 with full names.
 
 - [ ] Schema validation disabled in XmlNormaliser — namespace mismatch on root element.
       Does NOT affect BaseX query performance. Fix when convenient.
@@ -351,10 +351,9 @@ Both databases run in Docker (`religioustext-basex`, `religioustext-mysql`).
 
 1. Add donate option — Ko-fi or GitHub Sponsors link in About page footer + subtle icon in toolbar
 2. Add `uuid-creator` to pom.xml and wire Spring Security + Flyway for MySQL
-2. Fix NIV abbreviated book names — re-ingest via API.Bible path
 3. Start Quran ingestion via fawazahmed0/quran-api
 4. Commentary cross-reference links via verse anchors
-5. Trigger NASB20 + NBLA from API.Bible
+5. Trigger NASB20 + NBLA from API.Bible (earliest ~late June 2026)
 6. Standardise document naming (`.xml` suffix inconsistency)
 7. Bulk translation import (200+ languages in local clone)
 

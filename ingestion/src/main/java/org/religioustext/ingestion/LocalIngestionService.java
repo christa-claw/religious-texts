@@ -40,7 +40,7 @@ public class LocalIngestionService {
     // Maps local folder names to canonical book names and metadata
     private static final Map<String, BookMeta> BOOK_META = buildBookMeta();
 
-    private static final CrawledBook POISON_PILL = new CrawledBook(null, 0, null, null);
+    private static final CrawledBook POISON_PILL = new CrawledBook(null, 0, null, null, null);
 
     private final LocalBibleReader localReader;
     private final ApiBibleCrawler  apiBibleCrawler;

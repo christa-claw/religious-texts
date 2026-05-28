@@ -100,6 +100,7 @@ public class IngestionService {
 
     @SuppressWarnings("unchecked")
     public String ingest(final IngestionRequest request) throws Exception {
+        final String translationId = request.getAbbreviation();
         final String documentId    = buildDocumentId(request);
         final String bibleId       = extractBibleId(request);
 
