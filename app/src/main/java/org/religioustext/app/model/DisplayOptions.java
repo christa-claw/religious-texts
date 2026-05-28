@@ -25,12 +25,12 @@ public final class DisplayOptions {
             , false, false, true,  false)
 
         , CHAPTERS(
-             "Chapters"
+             "Chapters (1227)"
             , "Chapters added by Stephen Langton, Archbishop of Canterbury, c.1227 AD"
             , true,  false, false, false)
 
         , CHAPTERS_VERSES(
-             "Verses"
+             "Verses (1551)"
             , "Verses added by Robert Estienne (Stephanus), 1551 AD"
             , true,  true,  false, false)
 

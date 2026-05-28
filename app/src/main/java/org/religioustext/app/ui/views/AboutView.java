@@ -1,8 +1,5 @@
 package org.religioustext.app.ui.views;
 
-import com.vaadin.flow.component.Html;
-import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H1;
@@ -30,12 +27,16 @@ public class AboutView extends VerticalLayout {
              buildNavBar()
             , buildHero()
             , buildHowToSection()
+            , buildDisplayModesSection()
+            , buildChapterVerseProblemsSection()
             , buildAvailableTextsSection()
             , buildSourcesSection()
             , buildCommentsSection()
             , buildAboutSection()
             , buildFooter());
     }
+
+    // ── Nav bar ───────────────────────────────────────────────────────
 
     private HorizontalLayout buildNavBar() {
         final HorizontalLayout nav = new HorizontalLayout();
@@ -60,6 +61,8 @@ public class AboutView extends VerticalLayout {
         nav.add(logo, readerLink);
         return nav;
     }
+
+    // ── Hero ──────────────────────────────────────────────────────────
 
     private Div buildHero() {
         final Div hero = new Div();
@@ -90,6 +93,8 @@ public class AboutView extends VerticalLayout {
         return hero;
     }
 
+    // ── Helpers ───────────────────────────────────────────────────────
+
     private Div section(final String background) {
         final Div s = new Div();
         s.setWidthFull();
@@ -105,6 +110,15 @@ public class AboutView extends VerticalLayout {
             .set("padding-bottom", "8px").set("display", "inline-block");
         return h;
     }
+
+    private Paragraph prose(final String text) {
+        final Paragraph p = new Paragraph(text);
+        p.getStyle().set("color", "#444").set("line-height", "1.8")
+         .set("font-size", "15px").set("margin", "0 0 14px 0").set("max-width", "760px");
+        return p;
+    }
+
+    // ── How to use ────────────────────────────────────────────────────
 
     private Div buildHowToSection() {
         final Div s = section("white");
@@ -128,13 +142,13 @@ public class AboutView extends VerticalLayout {
         addStep(steps, "1", "Choose a Source",
             "Click \"Select source...\" in the column header and pick any translation or text from the dropdown.");
         addStep(steps, "2", "Navigate",
-            "Use the book selector and chapter arrows to jump anywhere. Or just scroll — the reader loads the next chapter automatically.");
+            "Use the book selector and chapter arrows to jump anywhere. Or just scroll — the reader loads the next chapter automatically as you reach the bottom.");
         addStep(steps, "3", "Add More Columns",
             "Click \"Add Column\" in the toolbar to open a second or third text alongside the first. Compare translations or traditions side by side.");
         addStep(steps, "4", "Sync or Browse Freely",
             "Columns scroll together by default. Click the 🔗 link icon in any column header to unlink it and browse that column independently.");
         addStep(steps, "5", "Change Display Mode",
-            "Switch between Original (scriptio continua), Chapters, Verses, and Titles modes per column using the dropdown in the header.");
+            "Switch between Original, Chapters (1227), Verses (1551), and Titles modes per column using the dropdown in the header. See below for what these mean.");
         addStep(steps, "6", "Follow Commentary Links",
             "When a commentary references a verse, click the link — all open Bible columns jump to that passage automatically.");
 
@@ -167,6 +181,264 @@ public class AboutView extends VerticalLayout {
         step.add(number, stepTitle, stepBody);
         container.add(step);
     }
+
+    // ── Display modes ─────────────────────────────────────────────────
+
+    private Div buildDisplayModesSection() {
+        final Div s = section("#f0f4f8");
+        s.add(sectionTitle("Understanding the Display Modes"));
+
+        final Paragraph intro = prose(
+            "The display mode selector in each column header controls how the text is presented. "
+            + "Each mode reflects a different layer of editorial history — some ancient, some surprisingly recent. "
+            + "Understanding where these divisions come from changes how you read.");
+        intro.getStyle().set("margin", "12px 0 32px");
+        s.add(intro);
+
+        final Div grid = new Div();
+        grid.getStyle()
+            .set("display", "grid")
+            .set("grid-template-columns", "repeat(auto-fit, minmax(300px, 1fr))")
+            .set("gap", "24px");
+
+        addModeCard(grid, "Original",
+            "Scriptio Continua",
+            "The earliest biblical manuscripts — whether Greek papyri of the New Testament "
+            + "or the great Hebrew codices — were written in continuous uppercase script with no spaces, "
+            + "no punctuation, no chapter breaks, and no verse numbers. Readers were expected to already "
+            + "know the text well enough to parse it.\n\n"
+            + "This mode recreates that experience. It is deliberately challenging. Reading it forces you "
+            + "to engage with the text as the earliest readers did — as a continuous argument or narrative, "
+            + "not a collection of isolated quotable fragments. Many scholars argue this is the most "
+            + "honest way to encounter the original intent of the authors.",
+            "#8b4513");
+
+        addModeCard(grid, "Chapters (1227)",
+            "Added by Stephen Langton",
+            "Stephen Langton, an English scholar who became Archbishop of Canterbury, divided "
+            + "the Bible into the chapter system still in use today around 1227 AD — more than a "
+            + "thousand years after the texts were written.\n\n"
+            + "His motivation was practical: scholars needed a consistent way to cite passages in "
+            + "theological debates. The chapter divisions were never intended as inspired boundaries. "
+            + "Langton worked quickly across an enormous text, and his divisions are sometimes "
+            + "excellent and sometimes jarring — cutting mid-argument, mid-poem, or even mid-sentence "
+            + "in ways that obscure the author's original flow.",
+            "#1a3a5c");
+
+        addModeCard(grid, "Verses (1551)",
+            "Added by Robert Estienne",
+            "Verse numbers were added to the New Testament in 1551 by Robert Estienne, a French "
+            + "printer also known as Stephanus. According to his son, he numbered the verses while "
+            + "travelling on horseback from Paris to Lyon — which may explain some of the more "
+            + "puzzling divisions.\n\n"
+            + "The Old Testament verse system followed shortly after. Like chapters, verses were "
+            + "added purely for reference convenience. They have since shaped how billions of people "
+            + "read and quote scripture — often in ways that isolate fragments from their context "
+            + "in ways the original authors never intended or anticipated.",
+            "#2e6da4");
+
+        addModeCard(grid, "Titles",
+            "Editorial Section Headings",
+            "Section titles — sometimes called pericopes — are editorial headings added by "
+            + "publishers and translators to help readers navigate. They are not part of any "
+            + "original manuscript.\n\n"
+            + "They vary significantly between translations: the NIV uses them extensively, "
+            + "while the KJV has none at all. Some titles are helpful summaries; others impose "
+            + "a theological interpretation on a passage before you have read a single word. "
+            + "Reading without titles first, then with, can be a revealing exercise.",
+            "#c9a84c");
+
+        s.add(grid);
+        return s;
+    }
+
+    private void addModeCard(final Div container, final String mode, final String subtitle,
+                             final String body, final String accentColor) {
+        final Div card = new Div();
+        card.getStyle()
+            .set("background", "white").set("border-radius", "8px")
+            .set("padding", "24px").set("border-top", "4px solid " + accentColor)
+            .set("box-shadow", "0 2px 8px rgba(0,0,0,0.06)");
+
+        final Span modeLabel = new Span(mode);
+        modeLabel.getStyle()
+            .set("display", "inline-block").set("background", accentColor).set("color", "white")
+            .set("font-weight", "700").set("font-size", "12px").set("padding", "3px 10px")
+            .set("border-radius", "20px").set("margin-bottom", "8px");
+
+        final H3 sub = new H3(subtitle);
+        sub.getStyle()
+            .set("font-size", "16px").set("font-weight", "700").set("color", "#1a3a5c")
+            .set("margin", "0 0 12px 0");
+
+        card.add(modeLabel, sub);
+
+        // Split body on \n\n into paragraphs
+        for (final String para : body.split("\n\n")) {
+            final Paragraph p = new Paragraph(para.trim());
+            p.getStyle().set("font-size", "13px").set("color", "#555")
+             .set("line-height", "1.7").set("margin", "0 0 10px 0");
+            card.add(p);
+        }
+
+        container.add(card);
+    }
+
+    // ── Chapter & verse problems ──────────────────────────────────────
+
+    private Div buildChapterVerseProblemsSection() {
+        final Div s = section("white");
+        s.add(sectionTitle("When Divisions Distort the Text"));
+
+        s.add(prose(
+            "Chapter and verse divisions have shaped how billions of people read scripture — "
+            + "but they were added by human editors centuries after the texts were written, "
+            + "and they sometimes cut across the original argument in ways that genuinely "
+            + "change the meaning. The following are among the most significant examples."));
+
+        // Isaiah
+        addProblemExample(s,
+            "Isaiah 52:13 – 53:12",
+            "A Prophecy Split in Two",
+            "The chapter break at Isaiah 53 cuts through what is actually one continuous poem — "
+            + "often called the fourth Servant Song. The poem begins at Isaiah 52:13 with "
+            + "\"See, my servant will act wisely; he will be raised and lifted up and highly exalted.\" "
+            + "This opening stanza (52:13–15) sets up the entire passage that follows in chapter 53, "
+            + "which Christians read as a prophecy of the crucifixion.\n\n"
+            + "Because the chapter division places 52:13–15 in what readers think of as \"Isaiah 52\" "
+            + "and the main body in \"Isaiah 53\", the opening verses are frequently overlooked. "
+            + "The poem is routinely cited beginning at 53:1, losing its dramatic opening. "
+            + "Reading it as one unbroken passage — as the original text presents it — restores "
+            + "the full arc of the prophecy.");
+
+        // Romans 7-8
+        addProblemExample(s,
+            "Romans 7 – 8",
+            "The \"Therefore\" That Lost Its \"Because\"",
+            "Romans 8 opens with one of the most famous lines in the New Testament: "
+            + "\"Therefore, there is now no condemnation for those who are in Christ Jesus.\" "
+            + "The word \"therefore\" is doing critical work — it signals that Paul is drawing "
+            + "a conclusion from an argument he has just made.\n\n"
+            + "But the chapter break separates the conclusion from the argument. "
+            + "Readers who begin at chapter 8 encounter a declaration without its proof. "
+            + "Paul's argument about the struggle between flesh and spirit in chapter 7 "
+            + "is the direct foundation for the assurance in chapter 8. The chapter division "
+            + "has contributed to Romans 8:1 being read as a standalone promise rather than "
+            + "the climax of a sustained theological argument.");
+
+        // Philippians 4:13
+        addProblemExample(s,
+            "Philippians 4:13",
+            "The Most Misquoted Verse in Scripture",
+            "\"I can do all things through Christ who strengthens me\" is one of the most "
+            + "widely quoted verses in the Bible — printed on merchandise, cited before "
+            + "sporting events, and invoked as a general promise of divine empowerment.\n\n"
+            + "In context, Paul is talking about something far more specific and far more "
+            + "challenging: contentment in poverty. The surrounding verses read: \"I have "
+            + "learned, in whatever state I am, to be content. I know how to be abased, "
+            + "and I know how to abound.\" The \"all things\" Paul can do through Christ is "
+            + "endure any circumstance — abundance or deprivation — with equanimity. "
+            + "The verse division stripped the verse from this context and turned a teaching "
+            + "about suffering gracefully into a slogan about achievement.");
+
+        // Jeremiah 29:11
+        addProblemExample(s,
+            "Jeremiah 29:11",
+            "A Promise to Exiles, Not Individuals",
+            "\"For I know the plans I have for you, declares the Lord, plans to prosper you "
+            + "and not to harm you, plans to give you hope and a future\" is one of the most "
+            + "popular verses in contemporary Christian culture, frequently applied as a "
+            + "personal divine promise.\n\n"
+            + "In context, God is addressing the entire community of Israelites exiled in "
+            + "Babylon — and he is telling them something they did not want to hear: that "
+            + "the exile will last seventy years. The hopeful verse is embedded in a letter "
+            + "telling the exiles to settle in Babylon, build houses, plant gardens, and "
+            + "accept that they will not return in their lifetimes. The promise is real — "
+            + "but it is collective, long-term, and preceded by decades of suffering. "
+            + "Verse division made it easy to extract the comfort while leaving behind the context.");
+
+        // John 11:35
+        addProblemExample(s,
+            "John 11:35",
+            "The Shortest Verse and What It Lost",
+            "\"Jesus wept\" is the shortest verse in the Bible — a distinction that has made "
+            + "it famous, frequently cited, and widely memorised in isolation.\n\n"
+            + "In the original Greek, the verse is part of a sustained emotional scene: "
+            + "Jesus arriving at the tomb of Lazarus, seeing Mary weeping, seeing the crowd "
+            + "weeping, and being \"deeply moved in spirit and troubled\" — a phrase that in "
+            + "the Greek (embrimaomai) carries a sense of anger or agitation, not just sadness. "
+            + "Scholars debate whether Jesus wept from grief, from compassion for those grieving, "
+            + "or from something more complex. The verse division has reduced a theologically "
+            + "rich moment to a touching anecdote about Jesus sharing human emotion.");
+
+        // Broader point
+        final Div callout = new Div();
+        callout.getStyle()
+            .set("background", "#f8fafc").set("border-left", "4px solid #c9a84c")
+            .set("border-radius", "4px").set("padding", "20px 24px")
+            .set("margin-top", "32px").set("max-width", "760px");
+
+        final H3 calloutTitle = new H3("Proof-Texting and the Verse System");
+        calloutTitle.getStyle()
+            .set("font-size", "15px").set("font-weight", "700")
+            .set("color", "#1a3a5c").set("margin", "0 0 10px 0");
+
+        final Paragraph calloutBody = new Paragraph(
+            "The verse system inadvertently created the conditions for \"proof-texting\" — "
+            + "the practice of citing an isolated verse to support a theological or moral position "
+            + "without reference to its surrounding argument. Both scholarly debate and popular "
+            + "culture have been shaped by this. A verse divorced from its context can appear "
+            + "to say almost the opposite of what the author intended.\n\n"
+            + "This is why the Original and Chapters display modes exist. Reading a chapter or "
+            + "book as continuous prose — without the visual interruption of verse numbers — "
+            + "often reveals an argument, narrative, or poem that the verse grid has made "
+            + "almost invisible.");
+        calloutBody.getStyle()
+            .set("font-size", "14px").set("color", "#555").set("line-height", "1.8").set("margin", "0");
+
+        callout.add(calloutTitle, calloutBody);
+        s.add(callout);
+
+        return s;
+    }
+
+    private void addProblemExample(final Div container, final String reference,
+                                   final String title, final String body) {
+        final Div example = new Div();
+        example.getStyle()
+            .set("margin-bottom", "32px").set("padding-bottom", "32px")
+            .set("border-bottom", "1px solid #e8edf2").set("max-width", "760px");
+
+        final Div header = new Div();
+        header.getStyle().set("display", "flex").set("align-items", "baseline")
+              .set("gap", "12px").set("margin-bottom", "8px").set("flex-wrap", "wrap");
+
+        final Span ref = new Span(reference);
+        ref.getStyle()
+            .set("font-family", "monospace").set("font-size", "13px")
+            .set("background", "#eef2f7").set("color", "#1a3a5c")
+            .set("padding", "2px 8px").set("border-radius", "4px")
+            .set("font-weight", "600").set("white-space", "nowrap");
+
+        final H3 h = new H3(title);
+        h.getStyle()
+            .set("font-size", "17px").set("font-weight", "700")
+            .set("color", "#1a3a5c").set("margin", "0");
+
+        header.add(ref, h);
+        example.add(header);
+
+        for (final String para : body.split("\n\n")) {
+            final Paragraph p = new Paragraph(para.trim());
+            p.getStyle().set("font-size", "14px").set("color", "#444")
+             .set("line-height", "1.8").set("margin", "0 0 12px 0");
+            example.add(p);
+        }
+
+        container.add(example);
+    }
+
+    // ── Available texts ───────────────────────────────────────────────
 
     private Div buildAvailableTextsSection() {
         final Div s = section("#f0f4f8");
@@ -248,6 +520,8 @@ public class AboutView extends VerticalLayout {
         container.add(card);
     }
 
+    // ── Sources & Attribution ─────────────────────────────────────────
+
     private Div buildSourcesSection() {
         final Div s = section("white");
         s.add(sectionTitle("Sources & Attribution"));
@@ -265,10 +539,10 @@ public class AboutView extends VerticalLayout {
             .set("display", "flex").set("flex-direction", "column")
             .set("gap", "12px").set("max-width", "720px");
 
-        addSourceRow(sources, "Bible texts (public domain)",  "wldeh/bible-api",             "https://github.com/wldeh/bible-api");
-        addSourceRow(sources, "NIV, NASB, NBLA (licensed)",  "API.Bible by American Bible Society", "https://scripture.api.bible");
-        addSourceRow(sources, "Quran (coming soon)",          "fawazahmed0/quran-api",        "https://github.com/fawazahmed0/quran-api");
-        addSourceRow(sources, "Hadith (coming soon)",         "fawazahmed0/hadith-api",       "https://github.com/fawazahmed0/hadith-api");
+        addSourceRow(sources, "Bible texts (public domain)",  "wldeh/bible-api",                     "https://github.com/wldeh/bible-api");
+        addSourceRow(sources, "NIV, NASB, NBLA (licensed)",  "API.Bible by American Bible Society",  "https://scripture.api.bible");
+        addSourceRow(sources, "Quran (coming soon)",          "fawazahmed0/quran-api",                "https://github.com/fawazahmed0/quran-api");
+        addSourceRow(sources, "Hadith (coming soon)",         "fawazahmed0/hadith-api",               "https://github.com/fawazahmed0/hadith-api");
 
         s.add(sources);
 
@@ -284,7 +558,8 @@ public class AboutView extends VerticalLayout {
         return s;
     }
 
-    private void addSourceRow(final Div container, final String label, final String source, final String url) {
+    private void addSourceRow(final Div container, final String label,
+                              final String source, final String url) {
         final Div row = new Div();
         row.getStyle()
             .set("display", "flex").set("align-items", "center")
@@ -305,6 +580,8 @@ public class AboutView extends VerticalLayout {
         row.add(labelSpan, link);
         container.add(row);
     }
+
+    // ── Comments CTA ──────────────────────────────────────────────────
 
     private Div buildCommentsSection() {
         final Div s = section("#f0f4f8");
@@ -358,35 +635,32 @@ public class AboutView extends VerticalLayout {
         return s;
     }
 
+    // ── About the project ─────────────────────────────────────────────
+
     private Div buildAboutSection() {
         final Div s = section("white");
         s.add(sectionTitle("About This Project"));
 
-        final Paragraph p1 = new Paragraph(
+        s.add(prose(
             "The Religious Texts Platform is an independent project built to make serious "
             + "comparative study of religious texts accessible to everyone — scholars, students, "
-            + "and curious readers alike. It is not affiliated with any religious organisation or publisher.");
-        p1.getStyle().set("color", "#555").set("margin", "12px 0 12px")
-           .set("max-width", "680px").set("line-height", "1.7");
+            + "and curious readers alike. It is not affiliated with any religious organisation or publisher."));
 
-        final Paragraph p2 = new Paragraph(
+        s.add(prose(
             "The platform is built on open-source technology: Java, Vaadin, Spring Boot, BaseX "
             + "(a native XML database), and MySQL (for user accounts and comments). "
             + "Source texts from the public domain are available freely. "
-            + "Licensed translations are used with permission from their publishers.");
-        p2.getStyle().set("color", "#555").set("margin", "0 0 12px")
-           .set("max-width", "680px").set("line-height", "1.7");
+            + "Licensed translations are used with permission from their publishers."));
 
-        final Paragraph p3 = new Paragraph(
+        s.add(prose(
             "New translations, traditions, and features are added continuously. "
             + "Quran translations and Hadith collections are coming next, followed by "
-            + "commentary integration and cross-reference links.");
-        p3.getStyle().set("color", "#555").set("margin", "0")
-           .set("max-width", "680px").set("line-height", "1.7");
+            + "commentary integration and cross-reference links."));
 
-        s.add(p1, p2, p3);
         return s;
     }
+
+    // ── Footer ────────────────────────────────────────────────────────
 
     private Div buildFooter() {
         final Div footer = new Div();
