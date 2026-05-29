@@ -351,8 +351,9 @@ Both databases run in Docker (`religioustext-basex`, `religioustext-mysql`).
 - Prefixes: `usr-` users, `cmt-` comments, `ref-` references, `nte-` notes, `blk-` blocked domains
 
 ### Transcript Argument Extraction
-- `transcripts/arguments.json` — 83 entries across 10 channels
-- Channels: Shamounian Explains (37), Dr Zakir Naik (10), Mohammed Hijab (7), DUS Dawah (4), GodLogic Apologetics (9), Hatun Tash (2), Ali Dawah (3), Apologetics Roadshow (3), JihadWatch (1), Raymond Ibrahim (1)
+- `transcripts/arguments.json` — 91 entries across 10 channels
+- Channels: Shamounian Explains (39), Dr Zakir Naik (10), Mohammed Hijab (8), DUS Dawah (5), GodLogic Apologetics (17), Hatun Tash (2), Ali Dawah (3), Apologetics Roadshow (3), JihadWatch (1), Raymond Ibrahim (1)
+- Islamic Dilemma covered from 8 angles: core argument (Quran 10:94, 5:47, 5:68, 4:136), Injil-specific, self-defeating extension, Paul parallel, Muslim tahrif response, Quran variant counter, manuscript evidence, Quran-confirms-Bible argument
 - Argument types: contextual, theological, prophecy, comparative, historical
 - Covers key contested verses: Luke 19:27, Isaiah 53, John 1:1, John 16:7 (Paraclete), Deuteronomy 18:18 (Muhammad prophecy), Quran 4:157 (crucifixion denial), Quran 10:94 (Islamic Dilemma), Matthew 27:46, John 20:17/28, Colossians 1:15, and more
 - `DataSeeder.java` reads arguments.json at startup and seeds comments into MySQL
