@@ -25,3 +25,9 @@ docker/data/
 # Spring Boot
 *.log
 application-local.properties
+
+# Transcripts — raw VTT files not committed, but arguments.json is
+transcripts/**/*.vtt
+transcripts/**/*.txt
+!transcripts/arguments.json
+!transcripts/README.md

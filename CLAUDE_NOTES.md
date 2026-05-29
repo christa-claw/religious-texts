@@ -134,6 +134,11 @@ Replaces old checkboxes — single dropdown with historical context as tooltip:
 - Commentary columns show verse references as clickable links
 - Clicking a reference navigates the synced Bible/Quran column to that passage
 - If the referenced text is not open in any column, offer to open it in a new column
+- **Translation-specific links**: `comment_references.source_id` can be null (translation-independent) or set to a specific translation (e.g. `bible-niv-2011`)
+  - `source_id` null → jump to that verse in ALL open Bible columns
+  - `source_id` matches an open column → jump to that specific column only
+  - `source_id` set but not open → offer to open that translation in a new column
+- Classic example: Isaiah 7:14 — NIV translates `almah` as "young woman", KJV as "virgin". A commentary needs to be able to link specifically to NIV or KJV to make the argument correctly.
 
 ---
 
