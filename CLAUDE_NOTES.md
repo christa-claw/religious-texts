@@ -362,6 +362,66 @@ Both databases run in Docker (`religioustext-basex`, `religioustext-mysql`).
 
 ---
 
+---
+
+## Design Decisions & Feature Notes
+
+### Log Pasting in Development
+When reporting errors, paste only:
+1. The main ERROR line (e.g. `Migration V2 failed`)
+2. The `Caused by:` line at the bottom of the stack
+This avoids consuming context window with redundant stack frames.
+
+### Display Mode Labels
+- `Original` → rename to **`Scriptio Continua`** (historically accurate: unformatted continuous text as in ancient manuscripts, no chapter/verse divisions)
+- `Chapters (1227)` — chapter divisions added ~1227 AD by Stephen Langton
+- `Verses (1551)` — verse divisions added 1551 AD by Robert Estienne
+- `Titles` — modern section headings added by translators
+
+### Translation Year in Source Selector
+- Show year in column header dropdown: `NIV — New International Version (2011)`
+- Year comes from the translation ID suffix (e.g. `bible-niv-2011`)
+- Already partially in place — just needs surfacing in the display label
+
+### About / How-To Page
+- Accessible at `http://localhost:8090/about`
+- Link from main toolbar (not yet added — pending)
+
+### Transcript Pipeline — Storing Processed Video URLs
+- `arguments.json` stores `source_file` (VTT filename) but not the YouTube URL
+- **TODO**: Store YouTube video URL in each entry so we can:
+  1. Skip re-processing already-handled videos
+  2. Link directly to source video from comment in UI
+- VTT filenames from yt-dlp contain video ID in some formats — extract and store as `video_url: https://youtube.com/watch?v={id}`
+- Also download stream transcripts — streams often contain more argued/refuted content than regular uploads
+- Update `extract_arguments.py` to write `video_url` field and check against already-processed URLs
+
+### Pre-populated Comments — System User
+- All transcript-extracted arguments are seeded under the Platform system user:
+  `usr-00000000-0000-7000-8000-000000000001` (display name: "Platform")
+- Real users cannot edit these comments but can reply to them
+- Future: allow users to "upvote" or "flag" pre-populated comments
+- Real user accounts will be created via normal registration — they own their own comments
+
+### Quran Ingestion — Arabic + Translation
+- Source: fawazahmed0/quran-api (GitHub, free, no rate limit)
+- Ingest Arabic original + at least one English translation side by side
+- Arabic stored as separate source: `quran-arabic` (RTL)
+- English translation stored as: `quran-en-{translator}` e.g. `quran-en-pickthall`, `quran-en-sahih`
+- Both columns can be opened simultaneously in the reader
+- Verse refs in `comment_references` use `source_id='quran-arabic'` or null for translation-independent
+
+### Text to Speech
+- Use browser native `SpeechSynthesis` API — zero backend, zero cost
+- Add play button (▶) per chapter/passage in reader
+- On click: read all visible verses in current column
+- Voice selection: use `speechSynthesis.getVoices()` — let user pick from available system voices
+- RTL languages (Arabic): ensure correct voice is selected
+- Vaadin implementation: `getElement().executeJs("window.speechSynthesis.speak(...)")`
+- Low complexity — good candidate for a focused session
+
+---
+
 ## Next Session Priorities
 
 1. Add donate option — Ko-fi or GitHub Sponsors link in About page footer + subtle icon in toolbar

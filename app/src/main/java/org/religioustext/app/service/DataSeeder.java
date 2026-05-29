@@ -31,10 +31,8 @@ public class DataSeeder {
     private static final String SYSTEM_USER_ID =
         "usr-00000000-0000-7000-8000-000000000001";
 
-    // Book code mappings from argument JSON to our internal codes
-    private static final Map<String, String> SOURCE_MAP = Map.of(
-        "bible", null  // source_id null = translation-independent
-    );
+    // source_id null = translation-independent reference
+    private static final String BIBLE_SOURCE_ID = null;
 
     @PersistenceContext
     private EntityManager em;

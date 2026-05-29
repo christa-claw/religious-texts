@@ -19,7 +19,7 @@ public final class DisplayOptions {
      */
     public enum DisplayMode {
          ORIGINAL(
-             "Original"
+             "Scriptio Continua"
             , "Original manuscripts were written in continuous uppercase "
             + "(scriptio continua) with no chapter or verse divisions"
             , false, false, true,  false)

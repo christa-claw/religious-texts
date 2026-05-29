@@ -7,7 +7,7 @@ verse-specific arguments and commentary in the Religious Texts Platform.
 
 ## How Transcripts Are Fetched
 
-Transcripts are downloaded using [yt-dlp](https://github.com/yt-dlp/yt-dlp).
+Transcripts are downloaded using [yt-dlp](https://github.com/yt-dlp/yt-dlp) via `fetch_transcripts.py`.
 
 ### Install
 
@@ -16,40 +16,42 @@ brew install yt-dlp
 pip3 install webvtt-py anthropic
 ```
 
-### Download transcripts for a channel
+### Fetch all channels
 
 ```bash
-yt-dlp --write-auto-sub --skip-download --sub-lang en \
-  --output "transcripts/%(channel)s/%(upload_date)s_%(title)s" \
-  "https://www.youtube.com/@ChannelHandle/videos"
+python3 fetch_transcripts.py
 ```
 
-### Download all configured channels at once
+### Fetch a single channel
 
 ```bash
-cd /Volumes/VMs/data/Claude/religious-texts
+python3 fetch_transcripts.py --channel godlogic
+```
 
-yt-dlp --write-auto-sub --skip-download --sub-lang en \
-  --output "transcripts/%(channel)s/%(upload_date)s_%(title)s" \
-  "https://www.youtube.com/@Drzakirchannel/videos" \
-  "https://www.youtube.com/@AliDawah/videos" \
-  "https://www.youtube.com/@DUSDawah/videos" \
-  "https://www.youtube.com/@MohammedHijab/videos" \
-  "https://www.youtube.com/@apologeticsroadshow/videos" \
-  "https://www.youtube.com/@GodLogicApologetics/videos" \
-  "https://www.youtube.com/@HatunTashDCCIMinistries/videos" \
-  "https://www.youtube.com/@ShamounianExplains/videos" \
-  "https://www.youtube.com/@JihadWatchVideo/videos" \
-  "https://www.youtube.com/@RaymondIbrahim-HW/videos"
+### Fetch specific content types only
+
+```bash
+python3 fetch_transcripts.py --channel shamounian --types videos
+python3 fetch_transcripts.py --types streams  # all channels, streams only
+```
+
+### Preview without downloading
+
+```bash
+python3 fetch_transcripts.py --dry-run
 ```
 
 ### Add a new channel
 
-1. Find the channel handle on YouTube
-2. Add it to the bulk download command above
-3. Add it to `CHANNEL_TRADITION` in `extract_arguments.py`
-4. Run the download command for that channel only
-5. Run `extract_arguments.py` — it resumes from where it left off
+1. Add entry to `channels.properties` (channel key, URL, optional types)
+2. Add tradition mapping to `CHANNEL_TRADITION` in `extract_arguments.py`
+3. Run `fetch_transcripts.py --channel newkey`
+4. Run `extract_arguments.py` — resumes automatically, skips already-processed files
+
+### Processed URL tracking
+
+`transcripts/processed_urls.txt` tracks which channel/type URLs have been fetched.
+Re-running `fetch_transcripts.py` skips already-processed URLs automatically.
 
 ---
 

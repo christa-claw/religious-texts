@@ -140,7 +140,7 @@ public class ReaderView extends VerticalLayout {
         state.chapterSelect  = new Select<>();
         columns.add(col);
         states.add(state);
-        columnsLayout.add(buildColumnComponent(col, state));
+        buildColumnComponent(col, state); // adds itself to columnsLayout
     }
 
     private void removeColumn(final SourceColumn col, final ColState state, final VerticalLayout colLayout) {
@@ -157,7 +157,11 @@ public class ReaderView extends VerticalLayout {
             .set("overflow-y", "auto").set("padding", "0").set("flex-shrink", "0");
         colLayout.add(buildColumnHeader(col, state, colLayout), buildNavBar(col, state), state.verseContainer);
         colLayout.setFlexGrow(1, state.verseContainer);
-        colLayout.addAttachListener(e -> setupScrollObserver(colLayout, state));
+        // Set up scroll observer after adding to layout, not via addAttachListener
+        columnsLayout.add(colLayout);
+        colLayout.getElement().executeJs(
+            "$0._scrollSetupDone = true;", colLayout.getElement());
+        setupScrollObserver(colLayout, state);
         return colLayout;
     }
 
@@ -189,7 +193,11 @@ public class ReaderView extends VerticalLayout {
             state.bookIndex = state.firstBookIdx = state.lastBookIdx = 0;
             final List<String> names = books.stream().map(b -> b[0]).toList();
             state.bookSelect.setItems(names);
-            if (!names.isEmpty()) state.bookSelect.setValue(names.get(0));
+            if (!names.isEmpty()) {
+                // Defer value set to avoid Vaadin off-by-one on first render
+                getUI().ifPresent(ui -> ui.access(() ->
+                    state.bookSelect.setValue(names.get(0))));
+            }
             if (sel.length > 5 && sel[5] != null && !sel[5].isBlank()) {
                 attributionLinkFor(header).ifPresent(a -> {
                     a.setHref(sel[5]);
@@ -203,7 +211,7 @@ public class ReaderView extends VerticalLayout {
         modeSelect.setValue(DisplayOptions.DisplayMode.CHAPTERS_VERSES);
         modeSelect.setItemLabelGenerator(DisplayOptions.DisplayMode::getLabel);
         modeSelect.setItemEnabledProvider(mode -> true);
-        modeSelect.getStyle().set("min-width", "110px").set("max-width", "110px");
+        modeSelect.getStyle().set("min-width", "180px").set("max-width", "190px");
         modeSelect.addValueChangeListener(e -> {
             col.getDisplayOptions().setMode(e.getValue());
             if (col.getSourceId() != null && state.currentBookName() != null) reloadColumn(state);
