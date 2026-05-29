@@ -422,6 +422,31 @@ This avoids consuming context window with redundant stack frames.
 
 ---
 
+## Known UI Bugs (as of 2026-05-29)
+
+### ReaderView — Active Issues
+- **Book selection doesn't update content** — selecting a different book from the dropdown does not reload the verse container. Root cause: Vaadin `Select.setValue()` doesn't reliably fire the value change listener when called programmatically after `setItems()`. Workaround attempted: explicit `loadBookFromChapter()` call after `setValue()`, but timing conflicts with the listener cause double-loads or no-loads.
+- **Continuous scroll not working** — `IntersectionObserver` sentinel divs (`top-`, `bot-`) are not triggering `load-prev`/`load-next` events when scrolling. Root cause was `root` being set to `verseContainer` instead of the actual scrolling element (`colLayout`/`scrollRoot`). Fixed in latest rewrite but untested at session end.
+- **Text truncated at right edge** — fixed with `overflow-wrap: break-word` and `overflow-x: hidden` on column. Confirmed working.
+- **Sticky header not working** — header scrolls with content instead of staying fixed. Root cause: `position: sticky` requires the scroll container to be a direct ancestor. Fixed in latest rewrite by using plain `Div` with `overflow-y: auto` instead of Vaadin `VerticalLayout`.
+- **Placeholder text persists** — "Select a source and book to begin reading." remains visible after content loads. Fixed by filtering `Span` children without `data-chapter` in `clearContent()`.
+
+### Latest Architecture Change (untested at session end)
+- Full rewrite of `ReaderView` using plain `Div` elements inside the column instead of `VerticalLayout`
+- `scrollRoot` is now a `Div` with `display:flex; flex-direction:column; overflow-y:auto` — this is the correct scroll container for `IntersectionObserver`
+- `rootMargin: '200px'` added to sentinel observer for early chapter loading
+- File: `app/src/main/java/org/religioustext/app/ui/views/ReaderView.java`
+- **Status: written but not yet tested — start here next session**
+
+### Next Session — Start Here
+1. Start app: `lsof -ti:8090 | xargs kill -9 && cd app && mvn spring-boot:run`
+2. Test book selection loads content
+3. Test continuous scroll (check browser console for `ScrollObserver ready on col-XXXX`)
+4. Test sticky header stays fixed while scrolling
+5. Fix NIV duplicate books (run `fix_niv_books.py` — script written but output showed 109 books, needs re-run)
+
+---
+
 ## Next Session Priorities
 
 1. Add donate option — Ko-fi or GitHub Sponsors link in About page footer + subtle icon in toolbar
