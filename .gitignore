@@ -29,5 +29,6 @@ application-local.properties
 # Transcripts — raw VTT files not committed, but arguments.json is
 transcripts/**/*.vtt
 transcripts/**/*.txt
+transcripts/downloaded.txt
 !transcripts/arguments.json
 !transcripts/README.md

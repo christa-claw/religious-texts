@@ -50,8 +50,9 @@ python3 fetch_transcripts.py --dry-run
 
 ### Processed URL tracking
 
-`transcripts/processed_urls.txt` tracks which channel/type URLs have been fetched.
-Re-running `fetch_transcripts.py` skips already-processed URLs automatically.
+`transcripts/downloaded.txt` is a yt-dlp video archive file that tracks individual video IDs.
+Re-running `fetch_transcripts.py` will scan the full channel but skip any video already in the archive.
+This means **new videos published after the last run will be downloaded automatically** on the next run.
 
 ---
 

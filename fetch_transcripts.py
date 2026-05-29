@@ -20,7 +20,7 @@ from pathlib import Path
 SCRIPT_DIR    = Path(__file__).parent
 CHANNELS_FILE = SCRIPT_DIR / "channels.properties"
 TRANSCRIPTS_DIR = SCRIPT_DIR / "transcripts"
-PROCESSED_FILE  = TRANSCRIPTS_DIR / "processed_urls.txt"
+PROCESSED_FILE  = TRANSCRIPTS_DIR / "downloaded.txt"  # yt-dlp video ID archive
 
 # Content types to fetch per channel — can be overridden per channel in properties
 DEFAULT_TYPES = ["videos", "streams"]
@@ -32,8 +32,9 @@ YTDLP_BASE = [
     "--sub-lang", "en",
     "--sleep-requests", "2",
     "--sleep-subtitles", "2",
-    "--ignore-errors",           # skip unavailable videos
+    "--ignore-errors",
     "--no-warnings",
+    "--download-archive", str(TRANSCRIPTS_DIR / "downloaded.txt"),
 ]
 
 
@@ -69,29 +70,9 @@ def load_channels():
     return channels
 
 
-def load_processed():
-    """Load set of already-processed URLs."""
-    if not PROCESSED_FILE.exists():
-        return set()
-    with open(PROCESSED_FILE) as f:
-        return {line.strip() for line in f if line.strip()}
-
-
-def save_processed(url):
-    """Append a URL to the processed list."""
-    TRANSCRIPTS_DIR.mkdir(parents=True, exist_ok=True)
-    with open(PROCESSED_FILE, "a") as f:
-        f.write(url + "\n")
-
-
 def fetch(channel_key, base_url, content_type, dry_run=False):
     """Run yt-dlp for a channel + content type combination."""
     url = f"{base_url}/{content_type}"
-    processed = load_processed()
-
-    if url in processed:
-        print(f"  ⏭  Already processed: {url}")
-        return
 
     output_template = str(
         TRANSCRIPTS_DIR / "%(channel)s" / content_type /
@@ -107,7 +88,6 @@ def fetch(channel_key, base_url, content_type, dry_run=False):
 
     result = subprocess.run(cmd)
     if result.returncode == 0:
-        save_processed(url)
         print(f"  ✅  Done: {url}")
     else:
         print(f"  ❌  Failed (exit {result.returncode}): {url}")
