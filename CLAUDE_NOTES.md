@@ -350,6 +350,15 @@ Both databases run in Docker (`religioustext-basex`, `religioustext-mysql`).
 - Type readable from first 3 chars; requires `com.github.f4b6a3:uuid-creator` in pom.xml
 - Prefixes: `usr-` users, `cmt-` comments, `ref-` references, `nte-` notes, `blk-` blocked domains
 
+### Transcript Argument Extraction
+- `transcripts/arguments.json` — 83 entries across 10 channels
+- Channels: Shamounian Explains (37), Dr Zakir Naik (10), Mohammed Hijab (7), DUS Dawah (4), GodLogic Apologetics (9), Hatun Tash (2), Ali Dawah (3), Apologetics Roadshow (3), JihadWatch (1), Raymond Ibrahim (1)
+- Argument types: contextual, theological, prophecy, comparative, historical
+- Covers key contested verses: Luke 19:27, Isaiah 53, John 1:1, John 16:7 (Paraclete), Deuteronomy 18:18 (Muhammad prophecy), Quran 4:157 (crucifixion denial), Quran 10:94 (Islamic Dilemma), Matthew 27:46, John 20:17/28, Colossians 1:15, and more
+- `DataSeeder.java` reads arguments.json at startup and seeds comments into MySQL
+- `V2__seed_arguments.sql` creates system user; DataSeeder handles comment insertion
+- Quran refs stored with source_id='quran' as placeholder until Quran ingestion complete
+
 ---
 
 ## Next Session Priorities
